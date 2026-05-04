@@ -1,0 +1,183 @@
+<header class="main-header" [class.scrolled]="isScrolled()">
+  <nav class="max-width-container nav-container">
+    <!-- Logo -->
+    <div class="logo-section" routerLink="/">
+      <app-logo variant="light" size="1.5rem"></app-logo>
+    </div>
+    
+    <!-- Search -->
+    <div class="search-section">
+      <form class="search-form" (submit)="onSearch(); $event.preventDefault()">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input 
+          type="text" 
+          id="search-input"
+          placeholder="Books, authors, genres..." 
+          [(ngModel)]="searchTerm" 
+          (ngModelChange)="onSearchInput()"
+          name="search"
+          class="search-input"
+          autocomplete="off"
+        >
+      </form>
+    </div>
+    
+    <!-- Desktop Nav Links -->
+    <div class="nav-links">
+      <a routerLink="/books"    routerLinkActive="active" class="nav-link">Browse</a>
+      <a routerLink="/editions" routerLinkActive="active" class="nav-link">Editions</a>
+
+      <a routerLink="/about"    routerLinkActive="active" class="nav-link">About</a>
+      @if (isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active" class="nav-link admin-link">Admin Console</a>
+      }
+    </div>
+    
+    <!-- Icon Actions -->
+    <div class="icon-actions">
+
+      <!-- Cart -->
+      <button class="icon-btn" routerLink="/cart" title="Cart">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        @if (cartCount() > 0) {
+          <span class="badge">{{ cartCount() }}</span>
+        }
+      </button>
+      
+      @if (isAuthenticated()) {
+        <!-- Wishlist -->
+        <button class="icon-btn" [routerLink]="['/dashboard']" [queryParams]="{ tab: 'wishlist' }" title="Wishlist">
+          <span class="material-symbols-outlined">favorite</span>
+        </button>
+
+        <!-- Notifications -->
+        <div class="notification-container">
+          <button class="icon-btn" (click)="toggleNotifications()" title="Notifications">
+            <span class="material-symbols-outlined">notifications</span>
+            @if (unreadCount() > 0) {
+              <span class="badge">{{ unreadCount() }}</span>
+            }
+          </button>
+
+          @if (showNotifications()) {
+            <div class="notification-dropdown dropdown-enter">
+              <div class="dropdown-header">
+                <h3>Notifications</h3>
+                <div class="header-actions">
+                  @if (unreadCount() > 0) {
+                    <button class="text-btn" (click)="markAllAsRead()">Mark all read</button>
+                  }
+                  @if (notifications().length > 0) {
+                    <button class="text-btn clear-btn" (click)="clearAllNotifications()">Clear all</button>
+                  }
+                </div>
+              </div>
+
+              <div class="notification-list custom-scrollbar">
+                @for (note of notifications(); track note.notificationId) {
+                  <div 
+                    class="notification-item" 
+                    [class.unread]="!note.isRead"
+                    (click)="markAsRead(note.notificationId, $event)"
+                  >
+                    <div class="note-icon" [ngClass]="note.type.toLowerCase()">
+                      <span class="material-symbols-outlined">{{ getIconForType(note.type) }}</span>
+                    </div>
+                    <div class="note-content">
+                      <p class="note-message">{{ note.message }}</p>
+                      <span class="note-time">{{ note.createdAt | date:'shortTime' }} · {{ note.createdAt | date:'mediumDate' }}</span>
+                    </div>
+                    @if (!note.isRead) {
+                      <div class="unread-dot"></div>
+                    }
+                  </div>
+                } @empty {
+                  <div class="empty-state">
+                    <span class="material-symbols-outlined large-icon">notifications_off</span>
+                    <p>All caught up!</p>
+                    <span>No new alerts at the moment.</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Profile + Logout -->
+        <div class="user-actions profile-section">
+          <div class="avatar-circle" routerLink="/dashboard" [title]="user()?.fullName || 'Profile'">
+            @if (user()?.profileImage && !headerImageError()) {
+              <img [src]="resolveImageUrl(user()?.profileImage)" alt="Profile" class="header-avatar-img" (error)="onImageError()">
+            } @else {
+              {{ userInitials() }}
+            }
+          </div>
+
+        </div>
+
+      } @else {
+        <a routerLink="/auth" class="auth-link">Sign In</a>
+      }
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Open menu">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+    </div>
+  </nav>
+</header>
+
+<!-- Mobile Navigation Drawer -->
+@if (showMobileMenu()) {
+  <div class="mobile-nav-overlay open" (click)="toggleMobileMenu()">
+    <div class="mobile-nav-drawer" (click)="$event.stopPropagation()">
+      <div class="drawer-header">
+        <app-logo size="1.25rem"></app-logo>
+        <button class="drawer-close-btn" (click)="toggleMobileMenu()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <a routerLink="/books"    class="drawer-nav-link" (click)="toggleMobileMenu()">
+        <span class="material-symbols-outlined">auto_stories</span> Browse
+      </a>
+      <a routerLink="/editions" class="drawer-nav-link" (click)="toggleMobileMenu()">
+        <span class="material-symbols-outlined">collections_bookmark</span> Editions
+      </a>
+
+      <a routerLink="/about"    class="drawer-nav-link" (click)="toggleMobileMenu()">
+        <span class="material-symbols-outlined">info</span> About
+      </a>
+      @if (isAdmin()) {
+        <a routerLink="/admin" class="drawer-nav-link admin-link" (click)="toggleMobileMenu()">
+          <span class="material-symbols-outlined">admin_panel_settings</span> Admin Console
+        </a>
+      }
+
+      @if (isAuthenticated()) {
+        <a routerLink="/dashboard" class="drawer-nav-link" (click)="toggleMobileMenu()">
+          <span class="material-symbols-outlined">person</span> My Account
+        </a>
+        <a routerLink="/cart" class="drawer-nav-link" (click)="toggleMobileMenu()">
+          <span class="material-symbols-outlined">shopping_cart</span> Cart
+          @if (cartCount() > 0) { ({{ cartCount() }}) }
+        </a>
+      } @else {
+        <a routerLink="/auth" class="drawer-nav-link" (click)="toggleMobileMenu()">
+          <span class="material-symbols-outlined">login</span> Sign In
+        </a>
+      }
+    </div>
+  </div>
+}
+
+<!-- Confirmation Modal -->
+<app-confirm-modal
+  *ngIf="showConfirmModal()"
+  [title]="confirmModalConfig().title"
+  [message]="confirmModalConfig().message"
+  [confirmText]="confirmModalConfig().confirmText"
+  [isDestructive]="confirmModalConfig().isDestructive"
+  (confirm)="onConfirmAction()"
+  (cancel)="showConfirmModal.set(false)"
+></app-confirm-modal>

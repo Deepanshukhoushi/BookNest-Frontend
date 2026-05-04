@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="960" viewBox="0 0 640 960" role="img" aria-label="Book cover unavailable">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f1e7d8"/>
+      <stop offset="100%" stop-color="#d7c8ad"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="960" fill="url(#bg)"/>
+  <rect x="70" y="80" width="500" height="800" rx="18" fill="#fbf7ef" stroke="#b9a98a" stroke-width="8"/>
+  <rect x="120" y="150" width="400" height="10" fill="#8a7655" opacity="0.35"/>
+  <rect x="120" y="190" width="320" height="10" fill="#8a7655" opacity="0.35"/>
+  <rect x="120" y="230" width="360" height="10" fill="#8a7655" opacity="0.35"/>
+  <path d="M215 470h210c11 0 20 9 20 20v170c0 11-9 20-20 20H215c-11 0-20-9-20-20V490c0-11 9-20 20-20z" fill="#e6dcc9" stroke="#8a7655" stroke-width="8"/>
+  <path d="M250 525h140M250 565h140M250 605h105" stroke="#8a7655" stroke-width="10" stroke-linecap="round"/>
+  <text x="320" y="790" text-anchor="middle" fill="#5d4f3a" font-size="30" font-family="Georgia, serif">Cover Unavailable</text>
+</svg>

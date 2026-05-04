@@ -1,0 +1,30 @@
+.logo-link {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  display: inline-block;
+  line-height: 1;
+  /* Specific styling to match the "BookNest" premium image */
+  font-variant-ligatures: common-ligatures;
+  -webkit-font-smoothing: antialiased;
+  transition: opacity 0.3s ease;
+}
+
+.logo-link:hover {
+  opacity: 0.85;
+}
+
+/* Variants */
+.default {
+  color: var(--text-primary);
+}
+
+.light {
+  color: #ffffff;
+}
+
+.secondary {
+  color: var(--color-secondary);
+}

@@ -1,0 +1,236 @@
+<header class="checkout-header">
+  <div class="checkout-page" style="padding-top: 0; padding-bottom: 0; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <app-logo></app-logo>
+    <a routerLink="/" class="return-link">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Return to Library
+    </a>
+  </div>
+</header>
+
+<main class="checkout-page">
+  <div class="checkout-main">
+    <!-- Left Column: Checkout Flow -->
+    <div class="checkout-flow">
+      <!-- Progress Stepper -->
+      <div class="stepper">
+        <div class="step" [class.completed]="currentStep() !== 'address'" [class.active]="currentStep() === 'address'">
+          <div class="step-circle">
+            <span *ngIf="currentStep() !== 'address'" class="material-symbols-outlined">check</span>
+            <span *ngIf="currentStep() === 'address'">1</span>
+          </div>
+          <span class="step-label">Cart Summary</span>
+        </div>
+        <div class="step" [class.completed]="currentStep() === 'review'" [class.active]="currentStep() === 'payment'">
+          <div class="step-circle">
+            <span *ngIf="currentStep() === 'review'" class="material-symbols-outlined">check</span>
+            <span *ngIf="currentStep() !== 'review'">2</span>
+          </div>
+          <span class="step-label">Address & Shipping</span>
+        </div>
+        <div class="step" [class.active]="currentStep() === 'review'">
+          <div class="step-circle">3</div>
+          <span class="step-label">Payment & Review</span>
+        </div>
+      </div>
+
+      <!-- Step Content -->
+      <div class="checkout-content">
+        <h1 class="checkout-section-title">Complete Your Collection</h1>
+        <p class="checkout-section-desc">Review your curated selections and select a payment method to finalize your acquisition.</p>
+
+        <!-- Shipping Address -->
+        <section class="review-card">
+          <div class="address-info">
+            <div class="info-icon">
+              <span class="material-symbols-outlined">local_shipping</span>
+            </div>
+            <div class="address-details">
+              <h3>Shipping Destination</h3>
+              <p class="checkout-section-desc" style="margin-top: 0.25rem;">Enter a delivery address before completing your purchase.</p>
+
+              <!-- Saved Addresses Quick Select -->
+              <div *ngIf="savedAddresses().length > 0" class="saved-addresses-selector">
+                <label class="selector-label">Shipping Profile</label>
+                <div class="address-chips">
+                  <!-- Add New Option -->
+                  <button 
+                    class="address-chip add-new"
+                    [class.active]="selectedAddressId() === null"
+                    (click)="addNewAddress()">
+                    <span class="material-symbols-outlined">add_location</span>
+                    <div class="chip-content">
+                      <span class="chip-name">New Address</span>
+                      <span class="chip-detail">Manual entry</span>
+                    </div>
+                  </button>
+
+                  <button 
+                    *ngFor="let addr of savedAddresses()" 
+                    class="address-chip"
+                    [class.active]="selectedAddressId() === addr.addressId"
+                    (click)="selectAddress(addr)">
+                    <span class="material-symbols-outlined">home</span>
+                    <div class="chip-content">
+                      <span class="chip-name">{{ addr.fullName }}</span>
+                      <span class="chip-detail">{{ addr.city }}, {{ addr.pincode }}</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="address-form">
+                <label class="field">
+                  <span>Full name</span>
+                  <input [(ngModel)]="addressForm.fullName" name="fullName" type="text" placeholder="Full name" />
+                </label>
+
+                <label class="field">
+                  <span>Phone</span>
+                  <input [(ngModel)]="addressForm.phone" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" />
+                </label>
+
+                <label class="field field-wide">
+                  <span>Street</span>
+                  <input [(ngModel)]="addressForm.street" name="street" type="text" placeholder="Flat/House no, Street" />
+                </label>
+
+                <label class="field">
+                  <span>City</span>
+                  <input [(ngModel)]="addressForm.city" name="city" type="text" placeholder="City" />
+                </label>
+
+                <label class="field">
+                  <span>State</span>
+                  <input [(ngModel)]="addressForm.state" name="state" type="text" placeholder="State" />
+                </label>
+
+                <label class="field">
+                  <span>Pincode</span>
+                  <input [(ngModel)]="addressForm.pincode" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" />
+                </label>
+              </div>
+
+              <div *ngIf="message()" class="inline-message" [class.error]="messageType() === 'error'" [class.success]="messageType() === 'success'">
+                {{ message() }}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Payment Method Selection -->
+        <section>
+          <h2 class="checkout-section-title" style="font-size: 1.875rem; border-bottom: 2px solid var(--surface-container-highest); display: inline-block; padding-bottom: 0.5rem; margin-bottom: 2rem;">Payment Method</h2>
+          
+          <div class="payment-grid">
+            <!-- Wallet Payment -->
+            <label class="payment-option">
+              <input
+                type="radio"
+                id="payment-wallet"
+                name="payment"
+                style="display: none;"
+                [checked]="paymentMethod() === 'WALLET'"
+                (change)="paymentMethod.set('WALLET')">
+              <div class="payment-option-card">
+                <div class="option-header">
+                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
+                    <span class="material-symbols-outlined">account_balance_wallet</span>
+                  </div>
+                  <div class="radio-circle">
+                    <div class="radio-inner"></div>
+                  </div>
+                </div>
+                <div class="option-title">BookNest Wallet</div>
+                <p class="option-desc">Utilize your curated funds for a seamless acquisition experience.</p>
+              </div>
+            </label>
+
+            <label class="payment-option">
+              <input
+                type="radio"
+                id="payment-online"
+                name="payment"
+                style="display: none;"
+                [checked]="paymentMethod() === 'ONLINE'"
+                (change)="paymentMethod.set('ONLINE')">
+              <div class="payment-option-card">
+                <div class="option-header">
+                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
+                    <span class="material-symbols-outlined">credit_card</span>
+                  </div>
+                  <div class="radio-circle">
+                    <div class="radio-inner"></div>
+                  </div>
+                </div>
+                <div class="option-title">Online Payment</div>
+                <p class="option-desc">Simulated payment flow for now. Fast, seamless checkout.</p>
+              </div>
+            </label>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Right Column: Order Summary -->
+    <aside class="order-summary-side">
+      <div class="summary-container">
+        <h2 class="summary-title">Order Summary</h2>
+        
+        <div class="item-list">
+          <div class="summary-item" *ngFor="let item of checkoutItems()">
+            <div class="item-image">
+              <img loading="lazy" [src]="item.imageUrl" [alt]="item.title">
+            </div>
+            <div class="item-details">
+              <div>
+                <span class="item-tag">{{ item.edition }}</span>
+                <h4>{{ item.title }}</h4>
+                <p class="item-author">{{ item.author }}</p>
+              </div>
+              <div class="item-meta">
+                <span class="item-author">Qty: {{ item.quantity }}</span>
+                <span class="item-price">{{ (item.price * item.quantity) | currency }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="calculation">
+          <div class="calc-row">
+            <span>Subtotal</span>
+            <span>{{ subtotal() | currency }}</span>
+          </div>
+          <div class="calc-row">
+            <span>Curated Shipping</span>
+            <span [class.free-shipping]="isFreeShipping()">
+              {{ isFreeShipping() ? 'Complimentary' : (shipping() | currency) }}
+            </span>
+          </div>
+          <div class="calc-row">
+            <span>Estimated Tax</span>
+            <span>{{ tax() | currency }}</span>
+          </div>
+          <div class="total-row">
+            <span class="total-label">Total</span>
+            <span class="total-amount">{{ total() | currency }}</span>
+          </div>
+        </div>
+
+        <button 
+          class="complete-btn" 
+          (click)="confirmOrder()"
+          [disabled]="isProcessing()">
+          <span *ngIf="isProcessing()" class="material-symbols-outlined animate-spin">progress_activity</span>
+          {{ isProcessing() ? 'Placing Order...' : 'Place Order' }}
+          <span *ngIf="!isProcessing()" class="material-symbols-outlined">arrow_forward</span>
+        </button>
+
+        <p class="secure-tag">
+          <span class="material-symbols-outlined" style="font-size: 14px;">lock</span>
+          Secure transaction
+        </p>
+      </div>
+    </aside>
+  </div>
+</main>

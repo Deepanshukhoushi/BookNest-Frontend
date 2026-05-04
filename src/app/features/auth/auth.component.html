@@ -1,0 +1,229 @@
+<main class="auth-page">
+  <div class="auth-card-container">
+
+    <!-- Left Panel: Image Canvas -->
+    <div class="image-panel">
+      <div class="panel-bg"></div>
+      <div class="panel-overlay"></div>
+
+      <div class="panel-top">
+        <a routerLink="/" class="back-home-btn">
+          <span class="material-symbols-outlined">arrow_back</span> Back to website
+        </a>
+      </div>
+
+      <div class="panel-bottom">
+        <h2 class="panel-tagline">Capturing Stories,<br>Creating Libraries.</h2>
+      </div>
+    </div>
+
+    <!-- Right Panel: Form Area -->
+    <div class="form-panel custom-scrollbar">
+      <div class="form-inner">
+
+        <!-- Alerts -->
+        <div class="alert error-alert" *ngIf="error()">{{ error() }}</div>
+        <div class="alert success-alert" *ngIf="message()">{{ message() }}</div>
+
+        <!-- LOG IN MODE -->
+        @if (authMode() === 'login') {
+        <h1 class="form-heading">Welcome back</h1>
+        <p class="form-subheading">
+          Don't have an account? <button (click)="setMode('register')">Register here</button>
+        </p>
+
+        <form class="auth-form" (ngSubmit)="onSubmit()">
+          <div class="floating-form-field">
+            <input id="loginEmail" type="email" name="email" [(ngModel)]="authData.email" placeholder=" " required
+              class="floating-input" [class.has-value]="authData.email">
+            <label class="floating-label" for="loginEmail">Email Address</label>
+          </div>
+
+          <div class="floating-form-field">
+            <input id="loginPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
+              [(ngModel)]="authData.password" placeholder=" " required
+              class="floating-input password-input" [class.has-value]="authData.password">
+            <label class="floating-label" for="loginPassword">Password</label>
+            <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+              <span class="material-symbols-outlined">
+                {{ showPassword() ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+
+          <div class="forgot-password-row">
+            <button type="button" class="forgot-link" (click)="setMode('forgot')">Forgot password?</button>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="loading() || !authData.email.trim() || !authData.password.trim()">
+            <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
+            {{ loading() ? 'Authenticating...' : 'Log In' }}
+          </button>
+
+          <div class="divider">
+            <span>Or access via</span>
+          </div>
+
+          <div class="social-grid">
+            <button type="button" class="social-btn" (click)="loginWithGoogle()">
+              <img loading="lazy" src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"> Google
+            </button>
+            <button type="button" class="social-btn" (click)="loginWithGithub()">
+              <img loading="lazy" src="https://www.vectorlogo.zone/logos/github/github-tile.svg" alt="GitHub"> GitHub
+            </button>
+          </div>
+        </form>
+        }
+
+        <!-- REGISTER MODE -->
+        @if (authMode() === 'register') {
+        <h1 class="form-heading">Create an account</h1>
+        <p class="form-subheading">
+          Already have an account? <button (click)="setMode('login')">Log in</button>
+        </p>
+
+        <form class="auth-form" (ngSubmit)="onSubmit()">
+          <div class="floating-form-field">
+            <input id="regFullName" type="text" name="fullName" [(ngModel)]="authData.fullName" placeholder=" "
+              required class="floating-input" [class.has-value]="authData.fullName">
+            <label class="floating-label" for="regFullName">Full Name</label>
+          </div>
+
+          <div class="floating-form-field">
+            <input id="regEmail" type="email" name="email" [(ngModel)]="authData.email" placeholder=" " required
+              class="floating-input" [class.has-value]="authData.email">
+            <label class="floating-label" for="regEmail">Email Address</label>
+          </div>
+
+          <div class="floating-form-field">
+            <input id="regMobile" type="tel" name="mobile" [(ngModel)]="authData.mobile" placeholder=" " required
+              class="floating-input" pattern="[0-9]{10}" maxlength="10" [class.has-value]="authData.mobile">
+            <label class="floating-label" for="regMobile">Mobile Number</label>
+          </div>
+
+
+          <div class="form-row">
+            <div class="floating-form-field">
+              <input id="regPassword" [type]="showPassword() ? 'text' : 'password'" name="password" [(ngModel)]="authData.password" placeholder=" "
+                required class="floating-input password-input" [class.has-value]="authData.password">
+              <label class="floating-label" for="regPassword">Password</label>
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                <span class="material-symbols-outlined">
+                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <div class="floating-form-field">
+              <input id="regConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="authData.confirmPassword"
+                placeholder=" " required class="floating-input password-input"
+                [class.input-mismatch]="authData.confirmPassword && authData.password !== authData.confirmPassword"
+                [class.input-match]="authData.confirmPassword && authData.password === authData.confirmPassword"
+                [class.has-value]="authData.confirmPassword">
+              <label class="floating-label" for="regConfirmPassword">Confirm</label>
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                <span class="material-symbols-outlined">
+                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+          </div>
+          <span class="password-hint"
+            *ngIf="authData.confirmPassword && authData.password !== authData.confirmPassword">
+            Passwords do not match
+          </span>
+
+          <button type="submit" class="submit-btn"
+            [disabled]="loading() || (authData.confirmPassword && authData.password !== authData.confirmPassword)">
+            <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
+            {{ loading() ? 'Creating Account...' : 'Create account' }}
+          </button>
+
+          <div class="divider">
+            <span>Or register with</span>
+          </div>
+
+          <div class="social-grid">
+            <button type="button" class="social-btn" (click)="loginWithGoogle()">
+              <img loading="lazy" src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"> Google
+            </button>
+            <button type="button" class="social-btn" (click)="loginWithGithub()">
+              <img loading="lazy" src="https://www.vectorlogo.zone/logos/github/github-tile.svg" alt="GitHub"> GitHub
+            </button>
+          </div>
+        </form>
+        }
+
+        <!-- FORGOT PASSWORD MODE -->
+        @if (authMode() === 'forgot') {
+        <h1 class="form-heading">Reset Password</h1>
+        <p class="form-subheading">
+          Enter your email to receive a recovery code. Remembered it? <button (click)="setMode('login')">Log in</button>
+        </p>
+
+        <form class="auth-form" (ngSubmit)="onSendOtp()">
+          <div class="floating-form-field">
+            <input id="forgotEmail" type="email" name="email" [(ngModel)]="resetData.email" placeholder=" " required
+              class="floating-input" [class.has-value]="resetData.email">
+            <label class="floating-label" for="forgotEmail">Email Address</label>
+          </div>
+
+          <button type="submit" class="submit-btn" [disabled]="loading() || !resetData.email.trim()">
+            <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
+            Send Recovery Code
+          </button>
+        </form>
+        }
+
+        <!-- RESET PASSWORD MODE -->
+        @if (authMode() === 'reset') {
+        <h1 class="form-heading">Set New Password</h1>
+        <p class="form-subheading">
+          Enter the code sent to your email and your new password. <button (click)="setMode('forgot')">Resend
+            code</button>
+        </p>
+
+        <form class="auth-form" (ngSubmit)="onResetPassword()">
+          <div class="floating-form-field">
+            <input id="resetOtp" type="text" name="otp" [(ngModel)]="resetData.otp" placeholder=" " required
+              class="floating-input" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" [class.has-value]="resetData.otp">
+            <label class="floating-label" for="resetOtp">Verification Code (OTP)</label>
+          </div>
+
+          <div class="form-row">
+            <div class="floating-form-field">
+              <input id="resetNewPassword" [type]="showPassword() ? 'text' : 'password'" name="newPassword" [(ngModel)]="resetData.newPassword"
+                placeholder=" " required class="floating-input password-input" [class.has-value]="resetData.newPassword">
+              <label class="floating-label" for="resetNewPassword">New Password</label>
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                <span class="material-symbols-outlined">
+                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <div class="floating-form-field">
+              <input id="resetConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="resetData.confirmPassword"
+                placeholder=" " required class="floating-input password-input"
+                [class.input-mismatch]="resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword"
+                [class.input-match]="resetData.confirmPassword && resetData.newPassword === resetData.confirmPassword"
+                [class.has-value]="resetData.confirmPassword">
+              <label class="floating-label" for="resetConfirmPassword">Confirm Password</label>
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                <span class="material-symbols-outlined">
+                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn"
+            [disabled]="loading() || (resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword)">
+            <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
+            Update Password
+          </button>
+        </form>
+        }
+
+      </div>
+    </div>
+  </div>
+</main>

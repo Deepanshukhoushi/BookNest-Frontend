@@ -1,0 +1,503 @@
+<div class="admin-layout">
+  <!-- Sidebar Navigation -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-header">
+      <app-logo></app-logo>
+      <div class="sidebar-profile">
+        <img [src]="userProfile().avatar" alt="Avatar" class="profile-img" (error)="onAdminImageError()">
+        <div class="profile-info">
+          <h4>{{ userProfile().name }}</h4>
+          <p>Chief Curator</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="javascript:void(0)" (click)="setView('overview')" class="nav-item" [class.active]="activeView() === 'overview'">
+        <span class="material-symbols-outlined">terminal</span>
+        Terminal
+      </a>
+      <a href="javascript:void(0)" (click)="setView('inventory')" class="nav-item" [class.active]="activeView() === 'inventory'">
+        <span class="material-symbols-outlined">menu_book</span>
+        Inventory
+      </a>
+      <a href="javascript:void(0)" (click)="setView('orders')" class="nav-item" [class.active]="activeView() === 'orders'">
+        <span class="material-symbols-outlined">local_shipping</span>
+        Orders
+      </a>
+      <a href="javascript:void(0)" (click)="setView('users')" class="nav-item" [class.active]="activeView() === 'users'">
+        <span class="material-symbols-outlined">group</span>
+        Users
+      </a>
+      <a href="javascript:void(0)" (click)="setView('moderation')" class="nav-item" [class.active]="activeView() === 'moderation'">
+        <span class="material-symbols-outlined">verified_user</span>
+        Moderation
+      </a>
+      
+      <div class="nav-divider"></div>
+
+      <a [routerLink]="['/']" class="nav-item">
+        <span class="material-symbols-outlined">storefront</span>
+        Public Store
+      </a>
+      <a href="javascript:void(0)" (click)="logout()" class="nav-item logout">
+        <span class="material-symbols-outlined">logout</span>
+        Exit Vault
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="curate-btn" (click)="openAddBookModal()">
+        Add New Edition
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Work Canvas -->
+  <main class="admin-main">
+    <header class="dashboard-header">
+      <div class="header-text">
+        <h2>Curator Terminal</h2>
+        <p>Operational heartbeat of the Booknest ecosystem.</p>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+      </div>
+    </header>
+
+    @if (activeView() === 'overview') {
+      <!-- Bento Grid Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card" *ngFor="let metric of metrics()" [ngClass]="metric.color">
+          <div class="metric-header">
+            <div class="metric-icon">
+              <span class="material-symbols-outlined" [style.color]="'var(--color-' + metric.color + ')'">{{ metric.icon }}</span>
+            </div>
+            <div class="metric-trend" [class.trend-up]="metric.trend.startsWith('+')" [class.trend-down]="metric.trend.startsWith('-')">
+              {{ metric.trend }}
+              <span class="material-symbols-outlined" style="font-size: 14px;">{{ metric.trend.startsWith('+') ? 'trending_up' : 'trending_down' }}</span>
+            </div>
+          </div>
+          <div class="metric-body">
+            <p>{{ metric.label }}</p>
+            <h3>{{ metric.value }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="management-grid analytics-grid">
+        <section class="management-card">
+          <div class="card-header">
+            <h3>Sales Intelligence</h3>
+            <span class="view-all">{{ topSellingBooks().length }} ranked titles</span>
+          </div>
+          <div class="insight-list">
+            <div class="insight-row" *ngFor="let item of topSellingBooks(); let i = index">
+              <div>
+                <strong>#{{ i + 1 }} {{ item.title }}</strong>
+                <p>{{ item.quantity }} copies sold</p>
+              </div>
+              <span>INR {{ item.revenue }}</span>
+            </div>
+            <div *ngIf="topSellingBooks().length === 0" class="empty-panel">
+              No sales data available yet.
+            </div>
+          </div>
+        </section>
+
+        <section class="management-card">
+          <div class="card-header">
+            <h3>Category Breakdown</h3>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button *ngIf="selectedGenre()" (click)="clearGenreFilter()" class="view-all" style="background: none; border: none; color: var(--color-error); cursor: pointer; font-size: 0.7rem; display: flex; align-items: center; gap: 2px;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+                Clear Filter
+              </button>
+              <span class="view-all">{{ categoryBreakdown().length }} genres</span>
+            </div>
+          </div>
+          <div class="insight-list">
+            <div class="insight-row interactive" *ngFor="let item of categoryBreakdown()" (click)="setGenreFilter(item.genre)" [class.selected]="selectedGenre() === item.genre" style="cursor: pointer; transition: all 0.2s ease;">
+              <div>
+                <strong>{{ item.genre }}</strong>
+                <p>Books currently listed</p>
+              </div>
+              <span>{{ item.count }}</span>
+            </div>
+            <div *ngIf="categoryBreakdown().length === 0" class="empty-panel">
+              No genre distribution available yet.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Admin Alerts -->
+      <section class="management-card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h3>Admin Alerts</h3>
+          <span class="view-all">Low stock & new orders</span>
+        </div>
+        <div class="alert-grid">
+          <div>
+            <h4>Low Stock</h4>
+            <div class="insight-list compact">
+              <div class="insight-row" *ngFor="let item of adminAlerts().lowStock.slice(0, 6)">
+                <div>
+                  <strong>{{ item.title }}</strong>
+                  <p>{{ item.author }}</p>
+                </div>
+                <span>{{ item.stock }} left</span>
+              </div>
+              <div *ngIf="adminAlerts().lowStock.length === 0" class="empty-panel">
+                No low-stock alerts right now.
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4>New / Active Orders</h4>
+            <div class="insight-list compact">
+              <div class="insight-row" *ngFor="let order of adminAlerts().newOrders">
+                <div>
+                  <strong>#BN-{{ order.orderId }}</strong>
+                  <p>{{ order.bookName }}</p>
+                </div>
+                <span>{{ order.orderStatus }}</span>
+              </div>
+              <div *ngIf="adminAlerts().newOrders.length === 0" class="empty-panel">
+                No active order alerts right now.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (activeView() === 'inventory') {
+      <!-- Collection Management Table -->
+      <section class="management-card">
+        <div class="card-header">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <h3>Curated Collection</h3>
+            <div *ngIf="selectedGenre()" style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--color-primary); font-weight: 600;">
+              <span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span>
+              Category: {{ selectedGenre() }}
+              <button (click)="clearGenreFilter()" style="background: none; border: none; color: var(--color-error); cursor: pointer; display: flex; align-items: center; padding: 0;">
+                <span class="material-symbols-outlined" style="font-size: 14px;">close</span>
+              </button>
+            </div>
+          </div>
+          <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Filter library..." (input)="onSearchChange($event)">
+          </div>
+        </div>
+        <div *ngIf="actionLoading()" style="padding: 0.5rem 1.5rem;">Processing...</div>
+        <div *ngIf="actionMessage()" style="padding: 0.5rem 1.5rem; color: #1f8f4a;">{{ actionMessage() }}</div>
+        <div *ngIf="actionError()" style="padding: 0.5rem 1.5rem; color: #c0392b;">{{ actionError() }}</div>
+        <div *ngIf="loading()" style="padding: 2rem; text-align: center;">Consulting the library archives...</div>
+        
+        <table class="data-table" *ngIf="!loading()">
+          <thead>
+            <tr>
+              <th>Volume Title</th>
+              <th>Status</th>
+              <th>Available</th>
+              <th>Trending</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredInventory()">
+              <td>
+                <div class="book-cell">
+                  <img loading="lazy" [src]="getSafeImageUrl(item.coverImageUrl)" alt="Book" class="book-thumb" (error)="onImageError($event)">
+                  <div>
+                    <div style="font-weight: 600; color: var(--color-primary)">{{ item.title }}</div>
+                    <div style="font-size: 0.75rem; color: var(--on-surface-variant)">{{ item.author }} • {{ item.genre }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="item.stock > 5 ? 'success' : 'warning'">
+                  {{ item.stock > 5 ? 'In Stock' : (item.stock > 0 ? 'Low Stock' : 'Out of Stock') }}
+                </span>
+              </td>
+              <td>{{ item.stock }} units</td>
+              <td>
+                <button class="trending-toggle" [class.active]="item.isFeatured" (click)="toggleTrending(item)" title="Toggle Home Spotlight" [style.color]="item.isFeatured ? '#f59e0b' : 'var(--neutral-200)'">
+                  <span class="material-symbols-outlined" [style.font-variation-settings]="item.isFeatured ? '&quot;FILL&quot; 1' : '&quot;FILL&quot; 0'">star</span>
+                </button>
+              </td>
+              <td>
+                <div class="action-btns">
+                  <button class="icon-btn" style="width: 2rem; height: 2rem;" (click)="openEditBookModal(item)">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                  </button>
+                  <button class="icon-btn" style="width: 2rem; height: 2rem; color: var(--color-error);" (click)="deleteBook(item.bookId)">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Load More Pagination -->
+        <div *ngIf="hasMoreBooks() && !loading()" class="load-more-container">
+          <button class="load-more-btn" (click)="loadMoreBooks()">
+            <span>Load More Titles</span>
+            <span class="material-symbols-outlined">expand_more</span>
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (activeView() === 'orders') {
+      <!-- Recent Acquisitions Sidepanel -->
+      <section class="management-card">
+        <div class="card-header">
+          <h3>Logistics & Acquisitions</h3>
+          <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input type="text" placeholder="Search orders..." (input)="onOrderSearchChange($event)">
+          </div>
+        </div>
+        <div class="filter-actions" style="display: flex; gap: 0.3rem; padding: 0.5rem 1.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(113, 121, 115, 0.1);">
+          <button
+            class="filter-btn"
+            *ngFor="let status of availableFilters"
+            [class.active]="filterStatus() === status"
+            (click)="setFilter(status)"
+            style="font-size: 0.65rem; padding: 0.2rem 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: transparent; cursor: pointer;"
+          >
+            {{ getFilterLabel(status) }}
+          </button>
+        </div>
+        <div class="acquisitions-list">
+          <div class="acq-item" *ngFor="let order of displayedOrders()">
+            <div class="acq-info">
+              <h5>{{ order.bookName }} <small>(Ordered)</small></h5>
+              <p>#BN-{{ order.orderId }} • {{ order.orderDate | date:'short' }}</p>
+              
+              <!-- User Address for Fulfillment -->
+              <div *ngIf="order.address" class="acq-address" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.03); border-radius: 4px;">
+                <div style="font-size: 0.7rem; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>
+                  Shipping Destination:
+                </div>
+                <div style="font-size: 0.7rem; color: var(--text-primary); margin-top: 2px;">
+                  {{ order.address.fullName }} • {{ order.address.mobileNumber }}<br>
+                  {{ order.address.flatNumber }}, {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}
+                </div>
+              </div>
+              <div class="status-updater" style="margin-top: 0.5rem;">
+                <select [value]="order.orderStatus" (change)="updateStatus(order.orderId, $any($event.target).value)" 
+                        style="font-size: 0.7rem; padding: 0.2rem; border-radius: 4px; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border-color);">
+                  <option *ngFor="let s of availableFilters.slice(2)" [value]="s">{{ getFilterLabel(s) }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="acq-meta">
+              <div class="acq-price">₹{{ order.amountPaid }}</div>
+              <span class="acq-badge" [ngClass]="order.orderStatus.toLowerCase()" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 10px; background: rgba(var(--color-primary-rgb), 0.1);">{{ order.orderStatus }}</span>
+            </div>
+          </div>
+          <div *ngIf="displayedOrders().length === 0" style="padding: 2rem; text-align: center; color: var(--on-surface-variant);">
+            No matching acquisitions found.
+          </div>
+        </div>
+        <div style="padding: 1.5rem; border-top: 1px solid rgba(113, 121, 115, 0.1);">
+          <button (click)="setFilter('ALL')" style="width: 100%; border: 1px solid var(--color-primary); color: var(--color-primary); padding: 0.75rem; border-radius: var(--radius-md); font-weight: 600; background: transparent; cursor: pointer;">
+            Refresh Archives
+          </button>
+        </div>
+      </section>
+    }
+
+    @if (activeView() === 'users') {
+      <section class="management-card">
+        <div class="card-header">
+          <h3>User Roles & Access Control</h3>
+          <span class="view-all">{{ allUsers().length }} registered accounts</span>
+        </div>
+        <table class="data-table" *ngIf="!loading()">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let user of allUsers().slice(0, 12)">
+              <td>{{ user.fullName }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <select [value]="user.role" (change)="updateUserRole(user.userId, $any($event.target).value)"
+                        style="font-size: 0.75rem; padding: 0.35rem; border-radius: 6px; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border-color);">
+                  <option value="USER">USER</option>
+                  <option value="ADMIN">ADMIN</option>
+                </select>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="user.suspended ? 'warning' : 'success'">
+                  {{ user.suspended ? 'Suspended' : 'Active' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div class="inline-actions">
+                  <button class="mini-action" (click)="toggleSuspension(user)">
+                    {{ user.suspended ? 'Reactivate' : 'Suspend' }}
+                  </button>
+                  <button class="mini-action danger" (click)="deleteUser(user)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    }
+
+    @if (activeView() === 'moderation') {
+      <section class="management-card review-moderation-panel">
+        <div class="card-header">
+          <h3>Review Moderation</h3>
+          <span class="view-all">{{ reviewStatusCounts().PENDING }} pending approval</span>
+        </div>
+
+        <!-- Moderation Tabs -->
+        <div class="moderation-tabs">
+          <button class="mod-tab" [class.active]="reviewModerationTab() === 'PENDING'" (click)="setReviewTab('PENDING')">
+            <span class="material-symbols-outlined">hourglass_empty</span>
+            Pending
+            @if (reviewStatusCounts().PENDING > 0) {
+              <span class="tab-badge pending">{{ reviewStatusCounts().PENDING }}</span>
+            }
+          </button>
+          <button class="mod-tab" [class.active]="reviewModerationTab() === 'APPROVED'" (click)="setReviewTab('APPROVED')">
+            <span class="material-symbols-outlined">check_circle</span>
+            Approved
+            <span class="tab-badge approved">{{ reviewStatusCounts().APPROVED }}</span>
+          </button>
+          <button class="mod-tab" [class.active]="reviewModerationTab() === 'REJECTED'" (click)="setReviewTab('REJECTED')">
+            <span class="material-symbols-outlined">cancel</span>
+            Rejected
+            <span class="tab-badge rejected">{{ reviewStatusCounts().REJECTED }}</span>
+          </button>
+        </div>
+
+        <!-- Review List -->
+        <div class="review-queue">
+          @for (review of filteredReviews(); track review.reviewId) {
+            <div class="review-item" [class]="'review-status-' + review.status?.toLowerCase()">
+              <div class="review-rating-stars">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <span class="star" [class.filled]="star <= review.rating">★</span>
+                }
+              </div>
+              <div class="review-body">
+                <div class="review-meta">
+                  <span class="review-book">Book #{{ review.bookId }}</span>
+                  <span class="review-user">by User #{{ review.userId }}</span>
+                  <span class="review-date">{{ review.createdAt | date: 'MMM d, y' }}</span>
+                </div>
+                <p class="review-comment">{{ review.comment }}</p>
+              </div>
+              <div class="review-actions">
+                @if (review.status !== 'APPROVED') {
+                  <button class="mod-action approve" (click)="approveReview(review.reviewId!)" title="Approve" [disabled]="actionLoading()">
+                    <span class="material-symbols-outlined">check</span>
+                  </button>
+                }
+                @if (review.status !== 'REJECTED') {
+                  <button class="mod-action reject" (click)="rejectReview(review.reviewId!)" title="Reject" [disabled]="actionLoading()">
+                    <span class="material-symbols-outlined">close</span>
+                  </button>
+                }
+                <button class="mod-action delete" (click)="removeReview(review.reviewId!)" title="Delete" [disabled]="actionLoading()">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          }
+          @if (filteredReviews().length === 0) {
+            <div class="empty-moderation-state">
+              <span class="material-symbols-outlined">{{ reviewModerationTab() === 'PENDING' ? 'done_all' : reviewModerationTab() === 'APPROVED' ? 'verified' : 'block' }}</span>
+              <p>
+                @if (reviewModerationTab() === 'PENDING') { No reviews awaiting approval. }
+                @else if (reviewModerationTab() === 'APPROVED') { No approved reviews yet. }
+                @else { No rejected reviews. }
+              </p>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+  </main>
+
+  <!-- Book Form Modal -->
+  @if (showBookModal()) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>{{ editingBookId() ? 'Edit Volume' : 'Add New Edition' }}</h3>
+          <button class="close-btn" (click)="closeBookModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form [formGroup]="bookForm" (ngSubmit)="submitBookForm()" class="book-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Title <span class="required">*</span></label>
+              <input type="text" formControlName="title" placeholder="Book Title" class="form-control" [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">
+            </div>
+            <div class="form-group">
+              <label>Author <span class="required">*</span></label>
+              <input type="text" formControlName="author" placeholder="Author Name" class="form-control" [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched">
+            </div>
+            <div class="form-group">
+              <label>ISBN <span class="required">*</span></label>
+              <input type="text" formControlName="isbn" placeholder="ISBN-13" class="form-control" [class.is-invalid]="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched">
+            </div>
+            <div class="form-group">
+              <label>Genre</label>
+              <input type="text" formControlName="genre" placeholder="e.g. Fiction, Sci-Fi" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Publisher</label>
+              <input type="text" formControlName="publisher" placeholder="Publisher Name" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Cover Image URL</label>
+              <input type="text" formControlName="coverImageUrl" placeholder="https://..." class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Price (INR) <span class="required">*</span></label>
+              <input type="number" formControlName="price" placeholder="0.00" min="0" class="form-control" [class.is-invalid]="bookForm.get('price')?.invalid && bookForm.get('price')?.touched">
+            </div>
+            <div class="form-group">
+              <label>Initial Stock <span class="required">*</span></label>
+              <input type="number" formControlName="stock" placeholder="0" min="0" class="form-control" [class.is-invalid]="bookForm.get('stock')?.invalid && bookForm.get('stock')?.touched">
+            </div>
+          </div>
+          <div class="form-group full-width">
+            <label>Description</label>
+            <textarea formControlName="description" rows="4" placeholder="Brief synopsis or description..." class="form-control"></textarea>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeBookModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="bookForm.invalid || actionLoading()">
+              {{ actionLoading() ? 'Processing...' : (editingBookId() ? 'Save Changes' : 'Add Edition') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

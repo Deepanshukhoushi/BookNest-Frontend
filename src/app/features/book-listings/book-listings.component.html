@@ -1,0 +1,168 @@
+<div class="listings-container">
+  <!-- Filter Sidebar -->
+  <aside class="filter-sidebar">
+    <div class="sidebar-header">
+      <h2 class="sidebar-title">Refine</h2>
+      <button class="clear-all-link" (click)="clearAllFilters()" *ngIf="hasActiveFilters()">Clear All</button>
+    </div>
+
+    <!-- Price Section -->
+    <div class="filter-section">
+      <div class="section-header">
+        <span class="filter-label">Price Range</span>
+        <span class="range-preview">Up to ₹{{ maxPrice() }}</span>
+      </div>
+      
+      <div class="single-range-container">
+        <input 
+          type="range" 
+          class="range-slider premium-slider" 
+          min="0" max="2000" 
+          [value]="maxPrice()"
+          (input)="updateMaxPrice($event)"
+          [style.background]="'linear-gradient(to right, var(--color-primary) ' + (maxPrice() / 2000 * 100) + '%, var(--neutral-200) ' + (maxPrice() / 2000 * 100) + '%)'"
+        >
+        <div class="range-labels">
+          <span>0</span>
+          <span>2000</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Genres -->
+    <div class="filter-section">
+      <span class="filter-label">Genres</span>
+      <div class="genre-list">
+        <div 
+          class="filter-row" 
+          *ngFor="let genre of displayedGenres()"
+          [class.active]="selectedGenre() === genre"
+          (click)="toggleGenre(genre)"
+        >
+          <div class="custom-checkbox">
+            <input type="checkbox" [checked]="selectedGenre() === genre" (change)="$event.stopPropagation(); toggleGenre(genre)">
+            <span class="checkbox-box"></span>
+          </div>
+          <span class="row-label">{{ genre }}</span>
+        </div>
+        
+        <button class="more-toggle" (click)="toggleShowAllGenres()">
+          {{ showAllGenres() ? 'Show Fewer' : '+ ' + (allGenres.length - 5) + ' More' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <!-- Rating -->
+    <div class="filter-section">
+      <span class="filter-label">Min Rating</span>
+      <div class="rating-filter-container">
+        <div class="star-row">
+          <span 
+            *ngFor="let star of [1,2,3,4,5]" 
+            class="material-symbols-outlined star-icon"
+            [class.filled]="(minRating() || 0) >= star"
+            (click)="setRating(star)"
+          >star</span>
+          <span class="rating-badge" *ngIf="minRating()">{{ minRating() }}+</span>
+        </div>
+        <button class="clear-rating-btn" *ngIf="minRating()" (click)="setRating(0)">
+          <span class="material-symbols-outlined">close</span> Clear
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="listings-main">
+    <header class="listings-header">
+      <div class="header-title">
+        <h1>Curated Collections</h1>
+        <p *ngIf="totalElements() > 0">Showing {{ showingStart() }}–{{ showingEnd() }} of {{ totalElements() }} editions</p>
+        <p *ngIf="totalElements() === 0 && !loading()">No editions match your selection.</p>
+      </div>
+      <div class="custom-sort">
+        <span class="sort-prefix">Sort:</span>
+        <div class="dropdown-container">
+          <button class="dropdown-trigger" (click)="toggleSort()">
+            <span class="current-value">{{ currentSortLabel() }}</span>
+            <span class="material-symbols-outlined expand-icon" [style.transform]="isSortOpen() ? 'rotate(180deg)' : 'none'">expand_more</span>
+          </button>
+          
+          <div class="dropdown-menu" *ngIf="isSortOpen()">
+            <button 
+              *ngFor="let option of sortOptions" 
+              class="dropdown-item" 
+              [class.active]="sortBy() === option.value"
+              (click)="selectSort(option)"
+            >
+              {{ option.label }}
+              <span class="material-symbols-outlined check-icon" *ngIf="sortBy() === option.value">check</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Skeleton Loading -->
+    @if (loading()) {
+      <div class="skeleton-grid">
+        @for (s of [1,2,3,4,5,6,7,8]; track s) {
+          <div class="skeleton-card">
+            <div class="skeleton-img"></div>
+            <div class="skeleton-line full"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Book Grid -->
+    <div class="book-grid stagger-grid" *ngIf="!loading()">
+      <app-book-card 
+        *ngFor="let book of books()" 
+        [bookId]="book.bookId"
+        [title]="book.title"
+        [author]="book.author"
+        [price]="book.price.toString()"
+        [imageUrl]="book.coverImageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCQt6DSXLCSlx_dMm-mTTLkGiMYDyH8ZjVMVAOJ04QEokNsCQiJpKmi-my5tG2SKaErowY7x6XnNUf5wCsaKNo54sKiXBZIDCKrfyW7kCMCfHbwF571eNkMP5TO5L6CMJ3Ce1UEVrOOr69Zz7unvNeAXFeB8sfmRW2Q8pWdzdun2q6hNnqIiNniWf1OZzjuVaQ94jLLuC1_tY2ETu__12RpIOjBxqT6_2-4EFQQ1EAGgC_bAyYPn6sgMiU03dpIHeztIs1A98_qDS0'"
+        [rating]="book.rating || 0"
+        [category]="book.genre"
+        [tag]="book.stock < 5 ? 'Limited' : ''"
+        variant="listing"
+        [routerLink]="['/book', book.bookId]"
+      ></app-book-card>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages() > 1" class="pagination-container">
+      <button 
+        class="page-btn arrow-btn" 
+        [disabled]="currentPage() === 0"
+        (click)="prevPage()"
+        aria-label="Previous page"
+      >
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+
+      <button 
+        *ngFor="let p of pages()" 
+        class="page-btn" 
+        [class.active]="currentPage() === p"
+        (click)="onPageChange(p)"
+      >{{ p + 1 }}</button>
+
+      <button 
+        class="page-btn arrow-btn" 
+        [disabled]="currentPage() === totalPages() - 1"
+        (click)="nextPage()"
+        aria-label="Next page"
+      >
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,542 @@
+@if (!loading()) {
+  <div class="member-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="member-sidebar">
+      <div class="sidebar-profile">
+        <div class="avatar-wrapper">
+          @if (user()?.profileImage && !profileImageError()) {
+            <img [src]="resolveImageUrl(user()?.profileImage)" alt="Profile" class="avatar-img" (error)="onImageError()">
+          } @else {
+            <div class="avatar-fallback">
+              {{ userInitials() }}
+            </div>
+          }
+          <div class="membership-badge">
+            <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
+          </div>
+        </div>
+        <h2 class="profile-name">{{ userProfile().name }}</h2>
+        <p class="profile-role">{{ userProfile().membership }}</p>
+        <button class="edit-profile-trigger" (click)="openEditProfile()">
+          <span class="material-symbols-outlined">edit</span>
+          Edit Profile
+        </button>
+      </div>
+
+      <nav class="member-nav">
+        <a (click)="setTab('identity')" [class.active]="activeTab() === 'identity'" class="nav-link">
+          <span class="material-symbols-outlined">person</span>
+          My Profile
+        </a>
+        <a (click)="setTab('acquisitions')" [class.active]="activeTab() === 'acquisitions'" class="nav-link">
+          <span class="material-symbols-outlined">auto_stories</span>
+          Purchases
+        </a>
+        <a (click)="setTab('wishlist')" [class.active]="activeTab() === 'wishlist'" class="nav-link">
+          <span class="material-symbols-outlined">favorite</span>
+          Wishlist
+        </a>
+        <a (click)="setTab('funds')" [class.active]="activeTab() === 'funds'" class="nav-link">
+          <span class="material-symbols-outlined">account_balance_wallet</span>
+          Wallet & Payments
+        </a>
+        <a (click)="setTab('settings')" [class.active]="activeTab() === 'settings'" class="nav-link">
+          <span class="material-symbols-outlined">settings</span>
+          Settings
+        </a>
+        
+        <div class="sidebar-separator"></div>
+        
+        <a (click)="logout()" class="nav-link logout-link">
+          <span class="material-symbols-outlined">logout</span>
+          Logout
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Work Canvas -->
+    <main class="member-main">
+      <!-- View Switcher -->
+      @switch (activeTab()) {
+        
+        <!-- Identity View (Default) -->
+        @case ('identity') {
+          <div class="identity-header">
+            <div class="identity-hero">
+              <div class="hero-text">
+                <p class="hero-label">Member Overview</p>
+                <h1>Welcome back,<br>{{ userProfile().name.split(' ')[0] }}</h1>
+                <p class="hero-meta">Member since {{ userProfile().joinedDate | date:'mediumDate' }} • Verified Member</p>
+              </div>
+              <div class="wallet-card-new">
+                <div class="wallet-info">
+                  <span class="material-symbols-outlined">account_balance_wallet</span>
+                  <div class="wallet-balance-stack">
+                    <span class="label">BookNest Wallet</span>
+                    <span class="amount">{{ (wallet()?.balance || 0) | currency:'INR' }}</span>
+                  </div>
+                </div>
+                <button class="top-up-btn" (click)="openTopUpModal()">Add Money</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="overview-stats">
+            <div class="stat-box" (click)="setTab('acquisitions')">
+              <div class="stat-icon acq"><span class="material-symbols-outlined">auto_stories</span></div>
+              <div class="stat-content">
+                <span class="value">{{ orders().length }}</span>
+                <span class="label">Total Books</span>
+              </div>
+            </div>
+            <div class="stat-box" (click)="setTab('wishlist')">
+              <div class="stat-icon wish"><span class="material-symbols-outlined">favorite</span></div>
+              <div class="stat-content">
+                <span class="value">{{ wishlistItems().length }}</span>
+                <span class="label">Saved Books</span>
+              </div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-icon spent"><span class="material-symbols-outlined">payments</span></div>
+              <div class="stat-content">
+                <span class="value">{{ totalSpent() | currency:'INR' }}</span>
+                <span class="label">Total Spent</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <!-- Recent Activity Column -->
+            <div class="activity-column">
+              <div class="section-header-compact">
+                <h3>Recent Activity</h3>
+                <button class="text-link" (click)="setTab('acquisitions')">View All</button>
+              </div>
+              
+              <div class="activity-list">
+                @for (order of orders().slice(0, 3); track order.orderId) {
+                  <div class="activity-item" [routerLink]="['/book', order.bookId]">
+                    <div class="activity-status" [attr.data-status]="order.orderStatus"></div>
+                    <div class="activity-info">
+                      <span class="activity-title">{{ order.bookName }}</span>
+                      <span class="activity-meta">
+                        {{ order.orderDate | date:'mediumDate' }}
+                        <span class="status-pill" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
+                      </span>
+                    </div>
+                    <span class="activity-price">{{ order.amountPaid | currency:'INR' }}</span>
+                  </div>
+                } @empty {
+                  <div class="empty-mini">
+                    <p>No recent activity.</p>
+                  </div>
+                }
+              </div>
+
+              <!-- Curated Recommendations -->
+              <div class="section-header-compact" style="margin-top: var(--space-xl);">
+                <h3>Curated for You</h3>
+                <a routerLink="/books" class="text-link">Discovery Grid</a>
+              </div>
+              <div class="rec-grid">
+                @for (book of recommendedBooks(); track book.bookId) {
+                  <app-book-card 
+                    [bookId]="book.bookId"
+                    [title]="book.title"
+                    [author]="book.author"
+                    [price]="book.price.toString()"
+                    [imageUrl]="book.coverImageUrl || ''"
+                    [rating]="book.rating || 0"
+                    [category]="book.genre"
+                    variant="listing"
+                    [routerLink]="['/book', book.bookId]"
+                  ></app-book-card>
+                }
+              </div>
+            </div>
+
+            <!-- Wishlist Column -->
+            <div class="wishlist-column">
+              <div class="section-header-compact">
+                <h3>Wishlist Preview</h3>
+                <button class="text-link" (click)="setTab('wishlist')">Manage</button>
+              </div>
+              
+              <div class="mini-wishlist">
+                @for (item of wishlistItems().slice(0, 4); track item.itemId) {
+                  <div class="wish-item-mini" [routerLink]="['/book', item.bookId]">
+                    <img loading="lazy" [src]="item.bookImageUrl" [alt]="item.bookTitle">
+                    <div class="wish-info">
+                      <span class="title">{{ item.bookTitle }}</span>
+                      <span class="price">{{ item.bookPrice | currency:'INR' }}</span>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="empty-mini">
+                    <p>Your wishlist is empty.</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Acquisitions View -->
+        @case ('acquisitions') {
+          <section class="section-card">
+            <div class="section-header">
+              <h3>Recent Purchases</h3>
+              <span class="view-all">{{ orders().length }} Total Records</span>
+            </div>
+            
+            @if (orders().length) {
+              <div class="order-list">
+                @for (order of orders(); track order.orderId) {
+                  <div class="order-card">
+                    <div class="order-header">
+                      <span class="order-id">#{{ order.orderId }} - {{ order.bookName }}</span>
+                      <span class="order-date">{{ order.orderDate | date:'mediumDate' }}</span>
+                    </div>
+                    <div class="order-summary">
+                      <span class="status-tag" [attr.data-status]="order.orderStatus">{{ order.orderStatus }}</span>
+                      <span class="amount">{{ order.amountPaid | currency:'INR' }}</span>
+                    </div>
+                    
+                    <!-- Visual Tracking Timeline -->
+                    <app-order-timeline [order]="order"></app-order-timeline>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                      <button class="top-up-btn secondary" (click)="viewInvoice(order.orderId)">View Invoice</button>
+                      <button class="top-up-btn" *ngIf="order.orderStatus === 'DELIVERED'" [routerLink]="['/book', order.bookId]">Write Review</button>
+                      <button class="top-up-btn" *ngIf="canCancel(order)" (click)="cancelOrder(order.orderId)">Cancel Order</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="empty-orders">
+                <p>No purchase history found.</p>
+              </div>
+            }
+          </section>
+        }
+
+        <!-- Wishlist View -->
+        @case ('wishlist') {
+          <section class="section-card">
+            <div class="section-header">
+              <h3>Your Wishlist</h3>
+              <a routerLink="/books" class="view-all">Explore More</a>
+            </div>
+            @if (wishlistItems().length) {
+              <div class="dashboard-book-grid">
+                @for (item of wishlistItems(); track item.itemId) {
+                  <app-book-card 
+                    [bookId]="item.bookId"
+                    [title]="item.bookTitle"
+                    [author]="'BookNest Edition'"
+                    [price]="item.bookPrice.toString()"
+                    [imageUrl]="item.bookImageUrl || ''"
+                    [rating]="0"
+                    [isWishlist]="true"
+                    variant="listing"
+                    (removed)="onWishlistItemRemoved($event)"
+                  ></app-book-card>
+                }
+              </div>
+            } @else {
+              <div class="empty-orders">
+                <p>No saved books found. Begin your collection by <a routerLink="/books" style="color: var(--color-secondary); font-weight: 600; cursor: pointer;">exploring the collection</a>.</p>
+              </div>
+            }
+          </section>
+        }
+
+
+        <!-- Ledger & Funds View -->
+        @case ('funds') {
+          <section class="section-card">
+            <div class="section-header">
+              <h3>Wallet & Payments</h3>
+            </div>
+            
+            <div class="funds-overview">
+              <div class="wallet-stat">
+                <span class="label">Current Balance</span>
+                <span class="value">{{ (wallet()?.balance || 0) | currency:'INR' }}</span>
+              </div>
+              <button class="top-up-btn primary" (click)="openTopUpModal()">Add Money</button>
+            </div>
+
+            <div class="transaction-history">
+              <h4>Recent Activity</h4>
+              @if (recentTransactions().length) {
+                <div class="transaction-list">
+                  @for (tx of recentTransactions(); track tx.statementId) {
+                    <div class="transaction-item">
+                      <div class="tx-icon" [class.deposit]="tx.transactionType === 'DEPOSIT'">
+                        <span class="material-symbols-outlined">
+                          {{ tx.transactionType === 'DEPOSIT' ? 'south_west' : 'north_east' }}
+                        </span>
+                      </div>
+                      <div class="tx-info">
+                        <span class="tx-title">
+                          {{ tx.transactionRemarks || 'Book Purchase' }}
+                          @if (tx.paymentGateway) {
+                            <span class="gateway-badge">via {{ tx.paymentGateway | uppercase }}</span>
+                          }
+                        </span>
+                        <span class="tx-date">{{ tx.dateTime | date:'medium' }}</span>
+                      </div>
+                      <div class="tx-amount" [class.deposit]="tx.transactionType === 'DEPOSIT'">
+                        {{ tx.transactionType === 'DEPOSIT' ? '+' : '-' }}{{ tx.amount | currency:'INR' }}
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="empty-state">
+                  <p>No recent activity found in your wallet.</p>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Settings View -->
+        @case ('settings') {
+          <section class="section-card">
+            <div class="section-header">
+              <h3>Account Settings</h3>
+            </div>
+
+            <div class="settings-grid">
+              <!-- Profile Section -->
+              <div class="settings-group">
+                <h4>Personal Info</h4>
+                @if (updateMessage().text) {
+                  <div class="status-alert" [attr.data-type]="updateMessage().type">
+                    {{ updateMessage().text }}
+                  </div>
+                }
+
+                <div class="form-field">
+                  <label for="profileName">Full Name</label>
+                  <input
+                    id="profileName"
+                    type="text"
+                    [ngModel]="nameInput()"
+                    (ngModelChange)="nameInput.set($event)"
+                    placeholder="Your Name"
+                    class="premium-input"
+                    [class.input-error]="!nameInput().trim() && nameInput() !== ''"
+                  >
+                  <span class="field-hint" *ngIf="!nameInput().trim() && nameInput() !== ''">Name cannot be blank.</span>
+                </div>
+                <div class="form-field">
+                  <label>Email Address</label>
+                  <input type="email" [value]="user()?.email" disabled class="premium-input disabled">
+                  <span class="field-hint">Email is verified and cannot be changed.</span>
+                </div>
+                <button class="top-up-btn" (click)="onUpdateProfile()" [disabled]="isUpdating()">
+                  {{ isUpdating() ? 'Saving...' : 'Update Profile' }}
+                </button>
+              </div>
+
+              <div class="settings-group" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                <h4>Security & Password</h4>
+                <div class="form-field">
+                  <label for="currentPassword">Current Password</label>
+                  <input
+                    id="currentPassword"
+                    type="password"
+                    [ngModel]="oldPasswordInput()"
+                    (ngModelChange)="oldPasswordInput.set($event)"
+                    placeholder="Enter current password"
+                    class="premium-input"
+                  >
+                </div>
+                <div class="form-field">
+                  <label for="newPassword">New Password</label>
+                  <input
+                    id="newPassword"
+                    type="password"
+                    [ngModel]="passwordInput()"
+                    (ngModelChange)="passwordInput.set($event)"
+                    placeholder="Min. 8 characters"
+                    class="premium-input"
+                    [class.input-error]="passwordInput().length > 0 && passwordInput().length < 8"
+                  >
+                  <span class="field-hint" *ngIf="passwordInput().length > 0 && passwordInput().length < 8">Must be at least 8 characters.</span>
+                </div>
+                <div class="form-field">
+                  <label for="confirmPassword">Confirm Password</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    [ngModel]="confirmPasswordInput()"
+                    (ngModelChange)="confirmPasswordInput.set($event)"
+                    placeholder="Repeat new password"
+                    class="premium-input"
+                    [class.input-error]="confirmPasswordInput().length > 0 && confirmPasswordInput() !== passwordInput()"
+                  >
+                  <span class="field-hint" *ngIf="confirmPasswordInput().length > 0 && confirmPasswordInput() !== passwordInput()">Passwords do not match.</span>
+                </div>
+                <button class="top-up-btn secondary" (click)="onChangePassword()" [disabled]="isUpdating()">
+                  {{ isUpdating() ? 'Saving...' : 'Update Security' }}
+                </button>
+              </div>
+
+              <div class="settings-group" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                <div class="settings-header-inline">
+                  <h4>Delivery Addresses</h4>
+                  <button class="text-link" type="button" (click)="resetAddressForm()">New Address</button>
+                </div>
+
+                <div class="address-form-grid">
+                  <div class="form-field">
+                    <label>Recipient Name</label>
+                    <input
+                      type="text"
+                      [ngModel]="addressDraft().fullName"
+                      (ngModelChange)="updateAddressField('fullName', $event)"
+                      placeholder="Full Name"
+                      class="premium-input">
+                  </div>
+                  <div class="form-field">
+                    <label for="addrMobile">Mobile Number</label>
+                    <input
+                      id="addrMobile"
+                      type="tel"
+                      [ngModel]="addressDraft().mobileNumber"
+                      (ngModelChange)="updateAddressField('mobileNumber', $event)"
+                      placeholder="10-digit mobile number"
+                      maxlength="10"
+                      class="premium-input"
+                    >
+                  </div>
+                  <div class="form-field address-span">
+                    <label>Flat / Street / Landmark</label>
+                    <input
+                      type="text"
+                      [ngModel]="addressDraft().flatNumber"
+                      (ngModelChange)="updateAddressField('flatNumber', $event)"
+                      placeholder="House no., street, landmark"
+                      class="premium-input">
+                  </div>
+                  <div class="form-field">
+                    <label>City</label>
+                    <input
+                      type="text"
+                      [ngModel]="addressDraft().city"
+                      (ngModelChange)="updateAddressField('city', $event)"
+                      placeholder="City"
+                      class="premium-input">
+                  </div>
+                  <div class="form-field">
+                    <label>State</label>
+                    <input
+                      type="text"
+                      [ngModel]="addressDraft().state"
+                      (ngModelChange)="updateAddressField('state', $event)"
+                      placeholder="State"
+                      class="premium-input">
+                  </div>
+                  <div class="form-field">
+                    <label for="addrPincode">Pincode</label>
+                    <input
+                      id="addrPincode"
+                      type="text"
+                      [ngModel]="addressDraft().pincode"
+                      (ngModelChange)="updateAddressField('pincode', $event)"
+                      placeholder="6-digit postal code"
+                      maxlength="6"
+                      class="premium-input"
+                    >
+                  </div>
+                </div>
+
+                <div class="address-actions">
+                  <button class="top-up-btn" type="button" (click)="submitAddress()" [disabled]="isSavingAddress()">
+                    {{ isSavingAddress() ? 'Saving...' : (editingAddressId() ? 'Update Address' : 'Save Address') }}
+                  </button>
+                  @if (editingAddressId()) {
+                    <button class="top-up-btn secondary" type="button" (click)="resetAddressForm()">Cancel Edit</button>
+                  }
+                </div>
+
+                <div class="address-list">
+                  @for (address of addresses(); track address.addressId) {
+                    <div class="address-card">
+                      <div class="address-card-copy">
+                        <h5>{{ address.fullName }}</h5>
+                        <p>{{ address.flatNumber }}, {{ address.city }}, {{ address.state }} - {{ address.pincode }}</p>
+                        <span>{{ address.mobileNumber }}</span>
+                      </div>
+                      <div class="address-card-actions">
+                        <button class="text-link" type="button" (click)="editAddress(address)">Edit</button>
+                        <button class="text-link danger-link" type="button" (click)="removeAddress(address.addressId!)">Delete</button>
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="empty-orders">
+                      <p>No delivery addresses saved yet.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- Fallback -->
+        @default {
+          <section class="section-card">
+            <div class="empty-orders">
+              <span class="material-symbols-outlined" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;">construction</span>
+              <h4>Coming Soon</h4>
+              <p>This module is currently being prepared for you.</p>
+              <button class="top-up-btn" style="margin-top: 1rem;" (click)="setTab('identity')">Return to Overview</button>
+            </div>
+          </section>
+        }
+
+      }
+    </main>
+  </div>
+
+  <!-- Confirmation Modal (Outside layout to avoid transform-trapping) -->
+  <app-confirm-modal
+    *ngIf="showConfirmModal()"
+    [title]="confirmModalConfig().title"
+    [message]="confirmModalConfig().message"
+    [confirmText]="confirmModalConfig().confirmText"
+    [isDestructive]="confirmModalConfig().isDestructive"
+    (confirm)="onConfirmAction()"
+    (cancel)="showConfirmModal.set(false)"
+  ></app-confirm-modal>
+} @else {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <p style="font-size: var(--text-sm); color: var(--text-muted);">Loading your profile...</p>
+  </div>
+}
+
+<!-- Modal Overlays -->
+<app-top-up-modal
+  [open]="showTopUpModal()"
+  [walletId]="wallet()?.walletId"
+  [userId]="user()?.userId"
+  (close)="showTopUpModal.set(false)"
+  (success)="onTopUpSuccess()"
+></app-top-up-modal>
+
+<app-profile-modal
+  [open]="showProfileModal()"
+  [currentName]="user()?.fullName || ''"
+  [currentImage]="user()?.profileImage || ''"
+  [saving]="isSavingProfile()"
+  (close)="showProfileModal.set(false)"
+  (save)="onSaveProfile($event)"
+></app-profile-modal>

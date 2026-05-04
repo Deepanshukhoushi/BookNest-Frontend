@@ -1,0 +1,97 @@
+
+/* ============================================================
+   ORDER HISTORY — Enhanced Production Polish
+   ============================================================ */
+
+/* Order card hover lift */
+.order-card,
+.order-row {
+  transition: var(--transition-base);
+}
+
+.order-card:hover,
+.order-row:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Track button */
+.track-btn {
+  padding: 8px 18px;
+  background: transparent;
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: var(--transition-base);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.track-btn:hover {
+  background: var(--color-primary);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Return / Cancel */
+.danger-action-btn {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1.5px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  color: var(--color-error);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.danger-action-btn:hover {
+  background: var(--color-error);
+  color: white;
+}
+
+/* Order total highlight */
+.order-total {
+  font-family: var(--font-headline);
+  font-weight: 800;
+  color: var(--color-primary);
+  font-size: var(--text-lg);
+}
+
+/* Timeline connector */
+.timeline-step {
+  position: relative;
+}
+
+.timeline-step::before {
+  content: '';
+  position: absolute;
+  left: 18px;
+  top: 36px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border-color);
+}
+
+.timeline-step:last-child::before {
+  display: none;
+}
+
+.timeline-step.done::before {
+  background: var(--color-success);
+}
+
+@media (max-width: 640px) {
+  .order-card {
+    padding: var(--space-md) !important;
+  }
+}

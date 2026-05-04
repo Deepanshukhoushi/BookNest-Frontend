@@ -1,0 +1,50 @@
+<main class="orders-page">
+  <header class="orders-header">
+    <h1>Orders</h1>
+    <a routerLink="/dashboard">Back to Dashboard</a>
+  </header>
+
+  <div *ngIf="loading()" class="orders-state">Loading orders...</div>
+  <div *ngIf="error()" class="orders-state error">{{ error() }}</div>
+
+  <section *ngIf="!loading() && !error() && !orders().length" class="orders-state">
+    📦 No orders yet
+  </section>
+
+  <section class="orders-list" *ngIf="!loading() && !error() && orders().length">
+    <article class="order-card" *ngFor="let order of orders()">
+      <div class="order-top">
+        <div>
+          <h2>Order #{{ order.orderId }}</h2>
+          <p>{{ order.orderDate | date:'medium' }}</p>
+        </div>
+        <span class="status" [ngClass]="statusClass(order.status)">{{ order.status }}</span>
+      </div>
+
+      <div class="order-meta">
+        <p><strong>Total:</strong> {{ order.totalAmount | currency:'INR' }}</p>
+        <p><strong>Payment:</strong> {{ order.paymentMethod }}</p>
+      </div>
+
+      <div class="order-items">
+        <div class="order-item" *ngFor="let item of order.items">
+          <span class="item-title">{{ item.title }}</span>
+          <span>Qty: {{ item.quantity }}</span>
+          <span>{{ item.price | currency:'INR' }}</span>
+        </div>
+      </div>
+
+      <div class="timeline" *ngIf="order.status !== 'CANCELLED'">
+        <div class="timeline-step" *ngFor="let step of timelineSteps" [class.active]="isTimelineActive(order.status, step)">
+          {{ step }}
+        </div>
+      </div>
+
+      <div class="order-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+        <button class="cancel-btn" *ngIf="canCancel(order.status)" (click)="onCancelOrder(order.orderId)">
+          Cancel Order
+        </button>
+      </div>
+    </article>
+  </section>
+</main>

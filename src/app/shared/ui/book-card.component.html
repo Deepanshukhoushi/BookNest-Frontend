@@ -1,0 +1,48 @@
+<article class="book-card-alt">
+  <div class="card-tag" *ngIf="tag()">{{ tag() }}</div>
+  
+  <div class="card-image-wrapper">
+    <img loading="lazy" [src]="getSafeImageUrl()" [alt]="title()" (error)="onImageError($event)">
+    
+    <!-- Quick Actions Overlay -->
+    <div class="card-actions">
+      <button class="action-btn" (click)="addToCart($event)" title="Add to Cart">
+        <span class="material-symbols-outlined">shopping_cart</span>
+      </button>
+      <button class="action-btn" (click)="addToWishlist($event)" title="Add to Wishlist" *ngIf="!isWishlist()">
+        <span class="material-symbols-outlined">favorite</span>
+      </button>
+      <button class="action-btn remove-btn" (click)="removeFromWishlist($event)" title="Remove from Wishlist" *ngIf="isWishlist()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="card-info">
+    <h3 class="card-title">{{ title() }}</h3>
+    <p class="card-author">{{ author() }}</p>
+    
+    <div class="card-rating" *ngIf="rating() > 0">
+      <div class="stars">
+        <div class="star-container" *ngFor="let s of [1,2,3,4,5]">
+          <span class="material-symbols-outlined star-icon empty">star</span>
+          <div class="star-fill" [style.width.%]="getStarFill(s)">
+            <span class="material-symbols-outlined star-icon filled">star</span>
+          </div>
+        </div>
+      </div>
+      <span class="rating-val">{{ rating() }}</span>
+    </div>
+
+    <div class="card-footer">
+      <span class="card-price">
+        @if (isNumber(price())) {
+          {{ +price() | currency:'INR':'symbol' }}
+        } @else {
+          {{ price() }}
+        }
+      </span>
+      <span class="card-edition" *ngIf="category()">{{ category() }}</span>
+    </div>
+  </div>
+</article>

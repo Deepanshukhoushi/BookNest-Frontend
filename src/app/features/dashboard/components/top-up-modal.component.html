@@ -1,0 +1,68 @@
+<div class="modal-backdrop" *ngIf="open" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="header-icon">
+        <span class="material-symbols-outlined">account_balance_wallet</span>
+      </div>
+      <div class="header-text">
+        <h3>Add Money to Wallet</h3>
+        <p>Add funds to your BookNest wallet</p>
+      </div>
+      <button class="close-btn" (click)="onClose()" aria-label="Close top-up modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <form [formGroup]="topUpForm" (ngSubmit)="onSubmit()" class="modal-body">
+      <!-- Error Alert -->
+      <div class="error-alert" *ngIf="errorMessage()">
+        <span class="material-symbols-outlined">error</span>
+        <p>{{ errorMessage() }}</p>
+      </div>
+
+      <!-- Amount Input -->
+      <div class="form-section">
+        <label for="topUpAmount">Amount to Add (INR)</label>
+        <div class="input-wrapper">
+          <span class="currency-symbol">₹</span>
+          <input 
+            id="topUpAmount"
+            type="text" 
+            formControlName="amount" 
+            placeholder="Min. ₹100 · Max. ₹1,00,000"
+            inputmode="numeric"
+            [class.invalid]="topUpForm.get('amount')?.invalid && topUpForm.get('amount')?.touched"
+          >
+        </div>
+        <!-- Quick-select chips -->
+        <div class="quick-amounts">
+          <button type="button" class="quick-chip" *ngFor="let a of quickAmounts"
+            (click)="topUpForm.patchValue({ amount: a })">
+            ₹{{ a | number }}
+          </button>
+        </div>
+        <div class="validation-msg" *ngIf="topUpForm.get('amount')?.invalid && topUpForm.get('amount')?.touched">
+          <span *ngIf="topUpForm.get('amount')?.errors?.['required']">Amount is required</span>
+          <span *ngIf="topUpForm.get('amount')?.errors?.['min']">Minimum ₹100 required</span>
+          <span *ngIf="topUpForm.get('amount')?.errors?.['max']">Maximum ₹100,000 allowed</span>
+          <span *ngIf="topUpForm.get('amount')?.errors?.['pattern']">Numeric values only</span>
+        </div>
+      </div>
+
+
+      <footer class="modal-footer">
+        <button type="button" class="cancel-btn" (click)="onClose()">Cancel</button>
+        <button type="submit" class="submit-btn" [disabled]="isSubmitting()">
+          <span *ngIf="!isSubmitting()">Add Money</span>
+          <div class="spinner" *ngIf="isSubmitting()"></div>
+        </button>
+      </footer>
+
+      <!-- Razorpay Security Badge -->
+      <div class="razorpay-badge">
+        <span class="material-symbols-outlined">verified_user</span>
+        <span>Secured by <strong>Razorpay</strong></span>
+      </div>
+    </form>
+  </div>
+</div>

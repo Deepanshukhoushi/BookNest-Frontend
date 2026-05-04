@@ -1,0 +1,42 @@
+<div class="wallet-container">
+  <header class="wallet-header">
+    <h2>Your Wallet</h2>
+  </header>
+
+  <div *ngIf="loading()" class="loading-state">
+    <p>Loading wallet...</p>
+  </div>
+
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+  </div>
+
+  <section *ngIf="!loading() && wallet() && !error()" class="wallet-card">
+    <div class="wallet-info">
+      <div class="balance-box">
+        <span class="label">Current Balance</span>
+        <div class="value">{{ wallet()!.balance | currency:'INR' }}</div>
+      </div>
+
+      <div class="order-summary">
+        <span class="label">Pending Order Amount</span>
+        <div class="value" style="font-size: var(--text-lg); opacity: 0.8;">{{ orderAmount() | currency:'INR' }}</div>
+      </div>
+
+      <div class="status-indicator">
+        <div *ngIf="insufficientBalance()" class="status-badge error">
+          <span class="material-symbols-outlined" style="font-size: 16px;">warning</span>
+          Insufficient Balance
+        </div>
+        <div *ngIf="!insufficientBalance()" class="status-badge success">
+          <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+          Sufficient Balance
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a routerLink="/checkout" class="btn-primary">Return to Checkout</a>
+    </div>
+  </section>
+</div>

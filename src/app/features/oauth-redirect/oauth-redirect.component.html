@@ -1,0 +1,7 @@
+<div class="oauth-redirect">
+  <p *ngIf="loading(); else done">Signing you in...</p>
+  <ng-template #done>
+    <p>Redirecting...</p>
+  </ng-template>
+</div>
+

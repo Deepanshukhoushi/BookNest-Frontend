@@ -1,0 +1,293 @@
+﻿@if (hasError()) {
+  <div class="max-width-container" style="padding: 2rem;">
+    <app-error-message [message]="errorMessage()" (retry)="retryFetch()"></app-error-message>
+  </div>
+}
+
+@if (!loading() && book()) {
+  <main class="detail-container">
+    <!-- Immersive Background Wrap -->
+    <div class="immersive-bg" [style.background-image]="'url(' + getSafeImageUrl(book()?.coverImageUrl) + ')'"></div>
+
+    <div class="content-wrapper">
+      <!-- Left: Artistic Focus -->
+      <div class="focus-column">
+        <div class="book-aesthetic-card">
+          @if (book()?.stock && book()!.stock < 10) {
+            <div class="premium-badge">Collector's Choice</div>
+          }
+          <img loading="lazy" [src]="getSafeImageUrl(book()?.coverImageUrl)" [alt]="book()?.title" (error)="onImageError($event)">
+          <div class="card-glow"></div>
+        </div>
+      </div>
+
+      <!-- Right: Editorial Details -->
+      <div class="editorial-column">
+        <nav class="breadcrumb">
+          <a routerLink="/">Collections</a>
+          <span class="sep">/</span>
+          <span class="curr">{{ book()?.genre }}</span>
+        </nav>
+
+        <section class="book-hero">
+          <h1 class="book-title">{{ book()?.title }}</h1>
+          <p class="book-author">By <span class="author-name">{{ book()?.author }}</span></p>
+          
+          @if (book()?.rating) {
+            <div class="rating-display">
+              <div class="stars">
+                @for (s of [1,2,3,4,5]; track s) {
+                  <span class="material-symbols-outlined" [class.filled]="(book()?.rating || 0) >= s">star</span>
+                }
+              </div>
+              <span class="rating-val">{{ book()?.rating }} / 5</span>
+            </div>
+          }
+        </section>
+
+        <div class="price-transaction">
+          <div class="price-stack">
+            <span class="price-label">Price</span>
+            <h2 class="book-price">{{ book()?.price | currency:'INR':'symbol' }}</h2>
+          </div>
+
+          <div class="acquisition-dock">
+            <div class="qty-control">
+              <button class="qty-btn" (click)="decrementQuantity()" [disabled]="quantity() <= 1">
+                <span class="material-symbols-outlined">remove</span>
+              </button>
+              <span class="qty-num">{{ quantity() }}</span>
+              <button class="qty-btn" (click)="incrementQuantity()">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+            </div>
+            
+            <button class="primary-action" (click)="addToCart()" [disabled]="addToCartLoading()">
+              @if (addToCartLoading()) {
+                <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+              } @else {
+                <span class="material-symbols-outlined">shopping_bag</span>
+                Add to Cart
+              }
+            </button>
+            
+            <button class="fav-action" [class.is-fav]="isFavorited()" (click)="toggleWishlist()">
+              <span class="material-symbols-outlined">{{ isFavorited() ? 'favorite' : 'favorite_border' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="tabs-container">
+          <div class="tab-header">
+            <button
+              type="button"
+              [class.active]="activeInfoTab() === 'synopsis'"
+              (click)="setInfoTab('synopsis')"
+            >
+              Synopsis
+            </button>
+            <button
+              type="button"
+              [class.active]="activeInfoTab() === 'details'"
+              (click)="setInfoTab('details')"
+            >
+              Details
+            </button>
+          </div>
+          <div class="tab-content">
+            @if (activeInfoTab() === 'synopsis') {
+              <p class="descriptionText">{{ book()?.description }}</p>
+            } @else {
+              <div class="specifications-grid">
+                <div class="spec-tile">
+                  <span class="spec-icon material-symbols-outlined">barcode</span>
+                  <div class="spec-info">
+                    <label>ISBN-13</label>
+                    <span>{{ book()?.isbn }}</span>
+                  </div>
+                </div>
+                <div class="spec-tile">
+                  <span class="spec-icon material-symbols-outlined">menu_book</span>
+                  <div class="spec-info">
+                    <label>Publisher</label>
+                    <span>{{ book()?.publisher || 'Royal Press' }}</span>
+                  </div>
+                </div>
+                <div class="spec-tile">
+                  <span class="spec-icon material-symbols-outlined">inventory_2</span>
+                  <div class="spec-info">
+                    <label>Availability</label>
+                    <span>{{ book()?.stock }} In Stock</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Ecosystem -->
+    <section class="reviews-ecosystem">
+      <div class="ecosystem-header">
+        <div class="stats-summary">
+          <h2>User Reviews</h2>
+          <div class="stats-row">
+            <div class="big-rating">{{ avgRating() }}</div>
+            <div class="stats-meta">
+              <div class="stars">
+                @for (s of [1,2,3,4,5]; track s) {
+                  <span class="material-symbols-outlined" [class.filled]="avgRating() >= s">star</span>
+                }
+              </div>
+              <span>Based on {{ totalReviews() }} reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Area: Submit or Edit -->
+        <div class="review-action-area">
+          @if (isLoggedIn()) {
+            @if (hasOrdered()) {
+              @if (!userReview() || isEditing()) {
+                <div class="review-form-card">
+                  <h3>{{ isEditing() ? 'Edit Your Review' : 'Write a Review' }}</h3>
+                  <div class="star-selector">
+                    @for (s of [1,2,3,4,5]; track s) {
+                      <button type="button" (click)="setRating(s)" class="star-btn">
+                        <span class="material-symbols-outlined" [class.filled]="reviewRating() >= s">star</span>
+                      </button>
+                    }
+                  </div>
+                  <textarea 
+                    [ngModel]="reviewComment()" 
+                    (ngModelChange)="reviewComment.set($event)"
+                    name="reviewComment"
+                    placeholder="What did you discover between the lines?"
+                    rows="4"
+                  ></textarea>
+
+                  @if (reviewError()) {
+                    <div class="form-error-msg">
+                      <span class="material-symbols-outlined">error</span>
+                      {{ reviewError() }}
+                    </div>
+                  }
+
+                  <div class="form-actions">
+                    @if (isEditing()) {
+                      <button type="button" class="cancel-btn" (click)="toggleEdit()">Discard</button>
+                    }
+                    <button type="button" class="submit-btn" [disabled]="reviewLoading() || reviewRating() === 0" (click)="submitReview()">
+                      @if (!reviewLoading()) {
+                        <span>Submit Review</span>
+                      } @else {
+                        <div class="spinner"></div>
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+            } @else {
+              <div class="verified-only-notice">
+                <span class="material-symbols-outlined">verified_user</span>
+                <p>Verified Experience Required</p>
+                <small>Reviews are reserved for users who have successfully ordered and received this book.</small>
+              </div>
+            }
+
+            @if (userReview() && !isEditing()) {
+              <div class="user-review-highlight">
+                <div class="highlight-header">
+                  <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <h3>Your Review</h3>
+                    <span class="status-badge-mini" [attr.data-status]="userReview()?.status">{{ userReview()?.status }}</span>
+                  </div>
+                  <div class="highlight-actions">
+                    <button (click)="toggleEdit()" aria-label="Edit review"><span class="material-symbols-outlined">edit</span></button>
+                    @if (!pendingDeleteConfirm()) {
+                      <button (click)="deleteReview()" aria-label="Delete review"><span class="material-symbols-outlined">delete</span></button>
+                    } @else {
+                      <div class="inline-confirm">
+                        <span class="inline-confirm-text">Remove review?</span>
+                        <button class="inline-confirm-yes" (click)="confirmDeleteReview()">Yes</button>
+                        <button class="inline-confirm-no" (click)="cancelDeleteReview()">No</button>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="stars">
+                   @for (s of [1,2,3,4,5]; track s) {
+                    <span class="material-symbols-outlined" [class.filled]="userReview()!.rating >= s">star</span>
+                   }
+                </div>
+                <p>"{{ userReview()!.comment }}"</p>
+              </div>
+            }
+          } @else {
+            <div class="login-incentive">
+              <span class="material-symbols-outlined">lock</span>
+              <p>Authenticity matters. Please sign in to write a review.</p>
+              <button routerLink="/auth" class="btn-auth">Login to Review</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Review List -->
+      <div class="review-feed-shell">
+        <div class="review-feed-header" *ngIf="reviews().length > 0">
+          <h3>All Reviews</h3>
+          <span>{{ reviews().length }} {{ reviews().length === 1 ? 'review' : 'reviews' }}</span>
+        </div>
+      <div class="review-feed">
+        @if (reviews().length === 0) {
+          <div class="empty-feed">
+            <span class="material-symbols-outlined">forum</span>
+            <p>This book awaits its first review. Be the one to start the conversation.</p>
+          </div>
+        }
+
+        @for (r of reviews(); track r.reviewId) {
+          <div class="review-card">
+            <div class="card-author">
+              <div class="author-avatar">{{ getReviewerName(r).charAt(0) }}</div>
+              <div class="author-meta">
+                <span class="name">{{ getReviewerName(r) }}</span>
+                <span class="date">{{ r.createdAt | date:'mediumDate' }}</span>
+              </div>
+            </div>
+            <div class="card-content">
+              <div class="stars">
+                @for (s of [1,2,3,4,5]; track s) {
+                  <span class="material-symbols-outlined" [class.filled]="r.rating >= s">star</span>
+                }
+              </div>
+              <p>{{ r.comment }}</p>
+            </div>
+          </div>
+        }
+      </div>
+      </div>
+    </section>
+  </main>
+}
+
+<!-- Premium Skeleton Loader -->
+@if (loading()) {
+  <div class="detail-container skeleton-active">
+    <div class="content-wrapper">
+      <div class="focus-column">
+        <div class="skeleton-media shimmer"></div>
+      </div>
+      <div class="editorial-column">
+        <div class="skeleton-line shimmer sm" style="width: 100px;"></div>
+        <div class="skeleton-line shimmer lg" style="width: 80%; margin-top: 2rem;"></div>
+        <div class="skeleton-line shimmer md" style="width: 40%;"></div>
+        
+        <div class="skeleton-block shimmer" style="margin-top: 4rem; height: 100px;"></div>
+        <div class="skeleton-block shimmer" style="margin-top: 2rem; height: 200px;"></div>
+      </div>
+    </div>
+  </div>
+}

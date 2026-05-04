@@ -1,0 +1,130 @@
+
+<main class="cart-page max-width-container">
+  <div class="folio-grid">
+    <!-- Left: Cart & Wishlist -->
+    <div class="folio-content">
+      
+      <!-- active Cart Section -->
+      <section class="cart-section">
+        <div class="section-title-group">
+          <h1 class="folio-title">Your Collection</h1>
+          <p class="folio-subtitle" *ngIf="cartItems().length">
+            {{ cartItems().length }} {{ cartItems().length === 1 ? 'Item' : 'Items' }} curated for acquisition
+          </p>
+        </div>
+
+        <div class="cart-items" *ngIf="cartItems().length > 0; else emptyCart">
+          <div class="cart-card" *ngFor="let item of cartItems()">
+            <div class="item-visual" [routerLink]="['/book', item.bookId]">
+              <img loading="lazy" [src]="item.bookImageUrl || 'assets/placeholder.jpg'" [alt]="item.bookTitle" class="item-cover">
+            </div>
+            <div class="item-details">
+              <div class="item-header">
+                <div class="title-meta">
+                  <h3 class="item-title" [routerLink]="['/book', item.bookId]">{{ item.bookTitle }}</h3>
+                  <p class="item-meta">Digital Edition • Instantly Available</p>
+                </div>
+                <button class="delete-btn" (click)="removeItem(item.itemId)" aria-label="Remove item">
+                  <span class="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              
+              <div class="item-actions">
+                <div class="quantity-picker">
+                  <button class="qty-btn" (click)="updateQuantity(item.itemId, item.quantity - 1)" [disabled]="item.quantity <= 1">
+                    <span class="material-symbols-outlined">remove</span>
+                  </button>
+                  <span class="qty-value">{{ item.quantity }}</span>
+                  <button class="qty-btn" (click)="updateQuantity(item.itemId, item.quantity + 1)">
+                    <span class="material-symbols-outlined">add</span>
+                  </button>
+                </div>
+                <div class="price-focus">
+                  <span class="item-price">₹{{ (item.price * item.quantity).toFixed(2) }}</span>
+                  <span class="price-each" *ngIf="item.quantity > 1">₹{{ item.price.toFixed(2) }} each</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #emptyCart>
+          <div class="empty-state-full stagger-1">
+            <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5; margin-bottom: 1rem;">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <h2>Your collection is empty</h2>
+            <p>Begin your curation journey by browsing our exceptional volumes.</p>
+            <button class="btn-primary" routerLink="/books" style="margin-top: 1rem;">Browse Library</button>
+          </div>
+        </ng-template>
+      </section>
+
+      <!-- Wishlist Section -->
+      <section class="wishlist-section" *ngIf="wishlistItems().length > 0">
+        <div class="wishlist-header">
+          <h2 class="wishlist-title">Saved for Later</h2>
+          <p class="wishlist-subtitle">Volumes awaiting your final consideration.</p>
+        </div>
+
+        <div class="wishlist-grid">
+          <div class="wishlist-card" *ngFor="let item of wishlistItems()">
+            <img loading="lazy" [src]="item.bookImageUrl || 'assets/placeholder.jpg'" [alt]="item.bookTitle" class="wish-cover">
+            <div class="wish-info">
+              <div class="wish-text">
+                <h4 class="wish-title">{{ item.bookTitle }}</h4>
+                <p class="wish-meta">Saved Item</p>
+                <span class="wish-price">₹{{ item.bookPrice?.toFixed(2) }}</span>
+              </div>
+              <button class="move-to-cart-btn" (click)="moveToCart(item)">
+                Move to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right: Summary (Sticky) -->
+    <aside class="summary-column">
+      <div class="summary-card sticky-summary">
+        <h2 class="summary-title">Summary</h2>
+        
+        <div class="summary-details">
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span class="val">₹{{ subtotal().toFixed(2) }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Estimated Shipping</span>
+            <span class="val" [class.free]="shipping() === 0">
+              {{ shipping() === 0 ? 'Complimentary' : '₹' + shipping().toFixed(2) }}
+            </span>
+          </div>
+          <div class="summary-row">
+            <span>Curator Tax</span>
+            <span class="val">₹{{ tax().toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="total-row">
+          <span class="total-label">Total</span>
+          <div class="total-stack">
+            <span class="total-val">₹{{ total().toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <button class="checkout-btn" [disabled]="cartItems().length === 0" (click)="checkout()">
+          Proceed to Checkout
+        </button>
+
+        <p class="summary-footer">
+          Shipping and taxes calculated at checkout. Complimentary white-glove delivery on orders over ₹250.
+        </p>
+      </div>
+    </aside>
+  </div>
+</main>
+

@@ -1,0 +1,34 @@
+<main style="max-width: 900px; margin: 2rem auto; padding: 1rem;">
+  <h2>Order History</h2>
+
+  <div *ngIf="loading()">Loading orders...</div>
+  <div *ngIf="error()" style="color: #c0392b;">{{ error() }}</div>
+
+  <table *ngIf="!loading() && !error() && orders().length" style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 0.5rem;">Order ID</th>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 0.5rem;">Total Amount</th>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 0.5rem;">Payment Method</th>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 0.5rem;">Status</th>
+        <th style="text-align: left; border-bottom: 1px solid #ddd; padding: 0.5rem;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders()">
+        <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">#{{ order.orderId }}</td>
+        <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">{{ order.amount | currency:'INR' }}</td>
+        <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">{{ order.paymentMethod }}</td>
+        <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">{{ order.status }}</td>
+        <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">
+          <button type="button" (click)="viewInvoice(order.orderId)" style="margin-right: 0.5rem;">Invoice</button>
+          <button type="button" *ngIf="order.canCancel" (click)="cancelOrder(order.orderId)">Cancel</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p *ngIf="!loading() && !error() && !orders().length">No orders yet.</p>
+
+  <a routerLink="/dashboard" style="display: inline-block; margin-top: 1rem;">Back to Dashboard</a>
+</main>

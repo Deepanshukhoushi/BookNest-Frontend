@@ -1,0 +1,81 @@
+<div class="modal-backdrop" *ngIf="open" (click)="onClose()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <header class="modal-header">
+      <div class="header-icon">
+        <span class="material-symbols-outlined">person_edit</span>
+      </div>
+      <div class="header-text">
+        <h3>Edit Profile</h3>
+        <p>Update your profile picture and name</p>
+      </div>
+      <button class="close-btn" (click)="onClose()" aria-label="Close modal">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </header>
+
+    <!-- Inline discard confirmation (replaces native confirm() dialog) -->
+    <div class="discard-confirm-banner" *ngIf="pendingDiscard()">
+      <span>Discard unsaved changes?</span>
+      <div class="discard-actions">
+        <button class="discard-yes" (click)="confirmDiscard()">Discard</button>
+        <button class="discard-no" (click)="cancelDiscard()">Keep Editing</button>
+      </div>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="modal-body">
+      <!-- Avatar Upload -->
+      <div class="avatar-upload-section">
+        <div class="avatar-preview-wrapper" (click)="fileInput.click()">
+          @if (previewImageSrc()) {
+            <img [src]="previewImageSrc()" alt="Preview" class="preview-img" (error)="onPreviewError()">
+          } @else {
+            <div class="preview-fallback">
+              <span class="material-symbols-outlined">person</span>
+            </div>
+          }
+          <div class="upload-overlay">
+            <span class="material-symbols-outlined">cloud_upload</span>
+          </div>
+        </div>
+        <input #fileInput type="file" hidden accept="image/*" (change)="onFileSelected($event)">
+        <p class="upload-hint">Click to update photo · Max 2 MB</p>
+        <!-- Inline file size error -->
+        <div class="validation-msg" *ngIf="fileSizeError()">
+          <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">error</span>
+          {{ fileSizeError() }}
+        </div>
+        <div class="validation-msg" *ngIf="previewImageError()">
+          Profile image could not be loaded. Choose another image to continue.
+        </div>
+      </div>
+
+      <!-- Form Fields -->
+      <div class="form-section">
+        <label for="profileModalName">Full Name</label>
+        <div class="input-wrapper">
+          <input
+            id="profileModalName"
+            type="text"
+            formControlName="name"
+            placeholder="Your Name"
+            [class.invalid]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched"
+          >
+          <span class="material-symbols-outlined field-icon">id_card</span>
+        </div>
+        <div class="validation-msg" *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched">
+          <span *ngIf="profileForm.get('name')?.errors?.['required']">Full name is required</span>
+          <span *ngIf="profileForm.get('name')?.errors?.['minlength']">Min. 2 characters required</span>
+          <span *ngIf="profileForm.get('name')?.errors?.['titleCase']">Each word must start with a capital letter (e.g. Deep Pawar)</span>
+        </div>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="cancel-btn" (click)="onClose()">Cancel</button>
+        <button type="submit" class="submit-btn" [disabled]="saving || profileForm.invalid">
+          <span *ngIf="!saving">Save Changes</span>
+          <div class="spinner" *ngIf="saving"></div>
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
