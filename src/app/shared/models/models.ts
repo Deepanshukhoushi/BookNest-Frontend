@@ -13,7 +13,6 @@ export enum AuthProvider {
 
 // Represents the various stages of an order fulfillment process
 export enum OrderStatus {
-  PENDING = 'PENDING',
   PLACED = 'PLACED',
   CONFIRMED = 'CONFIRMED',
   PAID = 'PAID',
