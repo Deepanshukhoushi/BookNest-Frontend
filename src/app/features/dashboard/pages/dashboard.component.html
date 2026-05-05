@@ -4,8 +4,8 @@
     <aside class="member-sidebar">
       <div class="sidebar-profile">
         <div class="avatar-wrapper">
-          @if (user()?.profileImage && !profileImageError()) {
-            <img [src]="resolveImageUrl(user()?.profileImage)" alt="Profile" class="avatar-img" (error)="onImageError()">
+          @if (userProfile().avatar) {
+            <img [src]="userProfile().avatar" alt="Profile" class="avatar-img" (error)="onImageError()">
           } @else {
             <div class="avatar-fallback">
               {{ userInitials() }}

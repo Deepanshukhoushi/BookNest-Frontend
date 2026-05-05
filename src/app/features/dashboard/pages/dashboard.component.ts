@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -82,13 +82,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
     action: () => {}
   });
 
-  // For the profile-driven part of the template
-  userProfile = signal({
-    name: 'Member',
-    membership: 'Member',
-    joinedDate: 'Recently',
-    location: 'Digital Library',
-    avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=User'
+  constructor() {
+    effect(() => {
+      this.user(); // track user signal
+      this.profileImageError.set(false);
+    });
+  }
+
+  userProfile = computed(() => {
+    const user = this.user();
+    if (!user) {
+      return {
+        name: 'Member',
+        membership: 'Member',
+        joinedDate: 'Recently',
+        location: 'Digital Library',
+        avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=User'
+      };
+    }
+
+    return {
+      name: user.fullName,
+      membership: (user.role || 'USER') + ' Member',
+      joinedDate: user.createdAt || 'Recently',
+      location: 'Verified Member',
+      avatar: this.profileImageError() ? null : this.resolveImageUrl(user.profileImage)
+    };
   });
   
   wallet = this.walletService.wallet;
@@ -105,13 +124,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (currentUser) {
       this.nameInput.set(currentUser.fullName);
       this.resetAddressForm();
-      this.userProfile.set({
-        name: currentUser.fullName,
-        membership: currentUser.role + ' Member',
-        joinedDate: currentUser.createdAt || 'Recent',
-        location: 'Verified Member',
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.fullName)}`
-      });
 
       // Handle Tab switching via query params — stored for cleanup
       this.queryParamsSub = this.route.queryParams.subscribe(params => {
@@ -283,19 +295,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.isSavingProfile.set(false);
           this.showProfileModal.set(false);
           this.profileImageError.set(false);   // reset so sidebar re-evaluates the @if
-
-          // Prefer the freshly uploaded URL (imageUrl from closure) because the
-          // backend update-profile response may not echo the profileImage back.
-          const resolvedAvatar =
-            this.resolveImageUrl(imageUrl || user.profileImage) ||
-            `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.fullName)}`;
-
-          // Update local userProfile signal
-          this.userProfile.set({
-            ...this.userProfile(),
-            name: user.fullName,
-            avatar: resolvedAvatar
-          });
 
           // Update settings inputs
           this.nameInput.set(user.fullName);
@@ -495,12 +494,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   canCancel(order: Order): boolean {
-    const cancelableStatuses = [
-      OrderStatus.PENDING,
-      OrderStatus.PLACED,
-      OrderStatus.PAID
-    ];
-    return cancelableStatuses.includes(order.orderStatus);
+    return [OrderStatus.PLACED, OrderStatus.CONFIRMED, OrderStatus.PAID].includes(order.orderStatus);
   }
 
   cancelOrder(orderId: number) {
