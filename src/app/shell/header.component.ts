@@ -42,9 +42,20 @@ export class HeaderComponent {
   showMobileMenu = signal(false);
   isScrolled = signal(false);
 
+  avatarUrl = computed(() => {
+    const user = this.user();
+    if (!user || this.headerImageError()) return null;
+    return this.authService.resolveImageUrl(user.profileImage);
+  });
+
   userInitials = computed(() => {
     const name = this.user()?.fullName;
-    return name ? name.charAt(0).toUpperCase() : 'U';
+    if (!name) return 'U';
+    return name.split(' ')
+      .map(n => n[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   });
 
   isAdmin = computed(() => this.user()?.role === 'ADMIN');

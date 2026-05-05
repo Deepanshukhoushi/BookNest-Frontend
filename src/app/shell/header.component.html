@@ -106,13 +106,12 @@
         <!-- Profile + Logout -->
         <div class="user-actions profile-section">
           <div class="avatar-circle" routerLink="/dashboard" [title]="user()?.fullName || 'Profile'">
-            @if (user()?.profileImage && !headerImageError()) {
-              <img [src]="resolveImageUrl(user()?.profileImage)" alt="Profile" class="header-avatar-img" (error)="onImageError()">
+            @if (avatarUrl()) {
+              <img [src]="avatarUrl()" alt="Profile" class="header-avatar-img" (error)="onImageError()">
             } @else {
               {{ userInitials() }}
             }
           </div>
-
         </div>
 
       } @else {

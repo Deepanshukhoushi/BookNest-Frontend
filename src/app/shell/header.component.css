@@ -1,4 +1,4 @@
-﻿/* ============================
+/* ============================
    Host â€” Sticky Header
    ============================ */
 :host {
@@ -30,8 +30,8 @@
 .nav-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-lg);
+  justify-content: flex-start;
+  gap: var(--space-md);
 }
 
 /* Logo */
@@ -46,7 +46,7 @@
 .nav-links {
   display: flex;
   gap: var(--space-lg);
-  margin: 0 var(--space-lg);
+  margin-left: auto;
 }
 
 .nav-link {
@@ -113,8 +113,8 @@
    ============================ */
 .search-section {
   flex-grow: 1;
-  max-width: 340px;
-  margin: 0 var(--space-md);
+  max-width: 400px;
+  margin-left: var(--space-xl);
 }
 
 .search-form {
@@ -165,7 +165,8 @@
 .icon-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 4px;
+  margin-left: var(--space-md);
 }
 
 .icon-btn {
@@ -191,10 +192,8 @@
 
 .icon-btn .badge {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  right: 0;
+  top: -4px;
+  right: -4px;
   background-color: white;
   color: var(--color-primary);
   font-size: 0.7rem;
@@ -379,10 +378,10 @@
 .profile-section {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  margin-left: var(--space-sm);
-  padding-left: var(--space-md);
-  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  gap: var(--space-sm);
+  margin-left: 2px;
+  padding-left: var(--space-sm);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .avatar-circle {
