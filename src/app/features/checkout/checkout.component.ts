@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { catchError, of, switchMap, tap } from 'rxjs';
-import { LogoComponent } from '../../shared/ui/logo/logo.component';
 import { OrderService } from '../../core/services/order.service';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
@@ -20,7 +19,7 @@ type PaymentMethod = 'WALLET' | 'ONLINE';
 @Component({
   selector: 'app-checkout',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, LogoComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './checkout.component.html',
   styleUrl: './checkout.component.css'
 })

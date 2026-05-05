@@ -10,23 +10,16 @@
   }
 }
 
-.checkout-header {
-  padding: 1.5rem 0;
+.checkout-actions {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background-color: var(--color-primary);
-  backdrop-filter: blur(10px);
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  margin-bottom: 2rem;
+  padding: 2rem 0 1rem 0;
 }
 
 .return-link {
   font-size: 0.875rem;
   font-weight: 500;
-  color: white;
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -34,7 +27,7 @@
 }
 
 .return-link:hover {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--color-primary-light);
 }
 
 .checkout-main {
