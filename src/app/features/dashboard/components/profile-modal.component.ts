@@ -43,14 +43,7 @@ export class ProfileModalComponent implements OnChanges {
     this.profileForm = this.fb.group({
       name: ['', [
         Validators.required,
-        Validators.minLength(2),
-        // Backend requires each word to start with a capital letter
-        (control: import('@angular/forms').AbstractControl) => {
-          const val: string = control.value || '';
-          if (!val.trim()) return null;
-          const allCapitalized = val.trim().split(/\s+/).every(w => /^[A-Z]/.test(w));
-          return allCapitalized ? null : { titleCase: true };
-        }
+        Validators.minLength(2)
       ]]
     });
   }

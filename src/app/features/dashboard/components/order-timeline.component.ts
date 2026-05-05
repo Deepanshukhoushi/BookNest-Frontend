@@ -153,7 +153,7 @@ import { Order, OrderStatusLog } from '../../../shared/models/models';
 export class OrderTimelineComponent {
   @Input() order!: Order;
 
-  steps = ['PLACED', 'CONFIRMED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+  steps = ['PLACED', 'CONFIRMED', 'PAID', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
 
   isCompleted(step: string): boolean {
     const statusIdx = this.steps.indexOf(this.order.orderStatus);
@@ -174,6 +174,7 @@ export class OrderTimelineComponent {
     switch (step) {
       case 'PLACED': return 'shopping_bag';
       case 'CONFIRMED': return 'verified';
+      case 'PAID': return 'payments';
       case 'SHIPPED': return 'local_shipping';
       case 'OUT_FOR_DELIVERY': return 'delivery_dining';
       case 'DELIVERED': return 'check_circle';

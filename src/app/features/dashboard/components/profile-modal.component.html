@@ -65,7 +65,6 @@
         <div class="validation-msg" *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched">
           <span *ngIf="profileForm.get('name')?.errors?.['required']">Full name is required</span>
           <span *ngIf="profileForm.get('name')?.errors?.['minlength']">Min. 2 characters required</span>
-          <span *ngIf="profileForm.get('name')?.errors?.['titleCase']">Each word must start with a capital letter (e.g. Deep Pawar)</span>
         </div>
       </div>
 
