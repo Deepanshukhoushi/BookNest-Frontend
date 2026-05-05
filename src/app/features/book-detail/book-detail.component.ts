@@ -263,7 +263,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     if (user) {
       this.wishlistService.fetchWishlist(user.userId).subscribe({
         next: (wishlist: Wishlist) => {
-          const exists = wishlist.items.some((i: WishlistItem) => i.bookId === bookId);
+          const exists = wishlist?.items?.some((i: WishlistItem) => i.bookId === bookId) || false;
           this.isFavorited.set(exists);
         },
         error: () => {} // non-critical; wishlist status defaults to false
@@ -281,10 +281,10 @@ export class BookDetailComponent implements OnInit, OnDestroy {
 
     this.orderService.getOrdersByUser(user.userId).subscribe({
       next: (orders: Order[]) => {
-        const purchased = orders.some(o => 
+        const purchased = orders?.some(o => 
           Number(o.bookId) === Number(bookId) && 
           o.orderStatus.toString().toUpperCase() === 'DELIVERED'
-        );
+        ) || false;
         this.hasOrdered.set(purchased);
       },
       error: () => this.hasOrdered.set(false)

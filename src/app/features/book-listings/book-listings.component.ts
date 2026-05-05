@@ -26,9 +26,8 @@ export class BookListingsComponent implements OnInit {
   searchTerm = this.searchService.searchTerm;
 
   allGenres = [
-    'Fiction', 'Non-Fiction', 'Poetry', 'Classics', 'Design', 
-    'Mystery', 'Sci-Fi', 'Biography', 'History', 'Philosophy', 
-    'Art', 'Travel', 'Science', 'Business', 'Kids'
+    'Fiction', 'Non-Fiction', 'Mystery', 'Romance', 'Science Fiction',
+    'Fantasy', 'Horror', 'Biography', 'Self-Help', 'History'
   ];
   
   showAllGenres = signal(false);

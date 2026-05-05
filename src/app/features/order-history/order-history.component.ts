@@ -45,7 +45,7 @@ export class OrderHistoryComponent implements OnInit {
           amount: order.amountPaid ?? order.totalAmount ?? 0,
           paymentMethod: order.paymentMethod ?? order.modeOfPayment ?? 'N/A',
           status: order.orderStatus ?? order.status ?? 'N/A',
-          canCancel: [OrderStatus.PLACED, OrderStatus.CONFIRMED, OrderStatus.PAID, OrderStatus.PENDING].includes(order.orderStatus)
+          canCancel: [OrderStatus.PLACED, OrderStatus.CONFIRMED, OrderStatus.PAID].includes(order.orderStatus)
         }));
         this.orders.set(mapped);
         this.loading.set(false);
