@@ -295,7 +295,7 @@
               <div class="status-updater" style="margin-top: 0.5rem;">
                 <select [value]="order.orderStatus" (change)="updateStatus(order.orderId, $any($event.target).value)" 
                         style="font-size: 0.7rem; padding: 0.2rem; border-radius: 4px; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border-color);">
-                  <option *ngFor="let s of availableFilters.slice(2)" [value]="s">{{ getFilterLabel(s) }}</option>
+                  <option *ngFor="let s of availableFilters.slice(1)" [value]="s">{{ getFilterLabel(s) }}</option>
                 </select>
               </div>
             </div>

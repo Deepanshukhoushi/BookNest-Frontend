@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -83,7 +83,7 @@ export class AdminDashboardComponent implements OnInit {
   /** Search term for the recent acquisitions panel */
   orderSearchTerm = signal('');
   /** Valid fulfillment statuses supported by the system */
-  readonly availableFilters = ['ALL', 'PROCESSING', 'PLACED', 'CONFIRMED', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+  readonly availableFilters = ['ALL', 'PLACED', 'CONFIRMED', 'PAID', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
 
   // Pagination for inventory
   booksToShow = signal(15);
@@ -207,12 +207,6 @@ export class AdminDashboardComponent implements OnInit {
     let filtered = orders;
     if (filter !== 'ALL') {
       filtered = orders.filter(order => {
-        if (filter === 'PROCESSING') {
-          return order.orderStatus === OrderStatus.PLACED || order.orderStatus === OrderStatus.CONFIRMED;
-        }
-        if (filter === 'SHIPPED') {
-          return order.orderStatus === OrderStatus.SHIPPED || order.orderStatus === OrderStatus.OUT_FOR_DELIVERY;
-        }
         return order.orderStatus === (filter as OrderStatus);
       });
     }
@@ -244,6 +238,13 @@ export class AdminDashboardComponent implements OnInit {
     this.adminProfileImageError.set(true);
   }
 
+  constructor() {
+    effect(() => {
+      this.authService.currentUser();
+      this.adminProfileImageError.set(false);
+    });
+  }
+
   ngOnInit() {
     this.refreshDashboardData();
   }
@@ -264,7 +265,12 @@ export class AdminDashboardComponent implements OnInit {
       next: (data) => {
         this.inventory.set(data.books.content);
         this.allOrders.set(data.orders);
-        this.allUsers.set(data.users);
+        const sortedUsers = [...data.users].sort((a, b) => {
+          if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
+          if (a.role !== 'ADMIN' && b.role === 'ADMIN') return 1;
+          return 0;
+        });
+        this.allUsers.set(sortedUsers);
         this.allReviews.set(data.reviews);
         this.reviewStatusCounts.set(data.reviewCounts);
         this.loading.set(false);
@@ -455,9 +461,9 @@ export class AdminDashboardComponent implements OnInit {
 
   getFilterLabel(filter: string): string {
     if (filter === 'ALL') return 'All';
-    if (filter === 'PROCESSING') return 'Processing';
-    if (filter === 'PLACED') return 'Processing (Placed)';
+    if (filter === 'PLACED') return 'Placed';
     if (filter === 'CONFIRMED') return 'Confirmed';
+    if (filter === 'PAID') return 'Paid';
     return filter.replace(/_/g, ' ');
   }
 
