@@ -35,7 +35,9 @@ export class AuthService {
   private router = inject(Router);
   private readonly API_URL = environment.apiBaseUrl + '/auth';
   private readonly USER_API_URL = environment.apiBaseUrl + '/users';
-  private readonly gatewayOrigin = new URL(environment.apiBaseUrl).origin;
+  private readonly gatewayOrigin = environment.apiBaseUrl.startsWith('http') 
+    ? new URL(environment.apiBaseUrl).origin 
+    : typeof window !== 'undefined' ? window.location.origin : '';
 
   // State
   private userSignal = signal<User | null>(this.getStoredUser());
