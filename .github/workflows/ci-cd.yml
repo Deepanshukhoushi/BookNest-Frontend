@@ -41,7 +41,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1.0.3
+        if: github.ref == 'refs/heads/dev'
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USERNAME }}
@@ -53,7 +54,7 @@ jobs:
 
             # Clone or Pull Frontend
             if [ ! -d "booknest-frontend" ]; then
-              git clone https://github.com/deepanshusingh-25/Booknest-Frontend.git booknest-frontend
+              git clone https://github.com/Deepanshukhoushi/BookNest-Frontend.git booknest-frontend
             fi
             cd booknest-frontend
             git checkout dev
@@ -62,9 +63,9 @@ jobs:
             # Clone Backend if not present (needed for docker-compose.yml)
             cd ..
             if [ ! -d "booknest-backend" ]; then
-              git clone https://github.com/deepanshusingh-25/Booknest-Backend.git booknest-backend
+              git clone https://github.com/Deepanshukhoushi/BookNest-Backend.git booknest-backend
             fi
             
             # Build and restart only the frontend container
             cd booknest-backend
-            docker-compose up -d --build booknest-frontend
+            docker compose up -d --build booknest-frontend
