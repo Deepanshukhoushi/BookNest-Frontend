@@ -63,7 +63,7 @@ describe('HeaderComponent', () => {
   });
 
   it('should compute user initials from fullName', () => {
-    expect(component.userInitials()).toBe('J');
+    expect(component.userInitials()).toBe('JD');
   });
 
   it('should compute isAdmin as false for USER role', () => {

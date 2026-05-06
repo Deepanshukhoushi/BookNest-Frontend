@@ -42,7 +42,7 @@ describe('WishlistService', () => {
 
     const req = httpMock.expectOne(r => r.url.includes('/wishlist/1'));
     expect(req.request.method).toBe('GET');
-    req.flush(mockWishlist);
+    req.flush({ data: mockWishlist, success: true, message: 'Success' });
 
     expect(service.wishlist()).toEqual(mockWishlist);
   });
@@ -53,7 +53,7 @@ describe('WishlistService', () => {
     const req = httpMock.expectOne(r => r.url.includes('/wishlist/add'));
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ userId: 1, bookId: 10 });
-    req.flush(mockWishlist);
+    req.flush({ data: mockWishlist, success: true, message: 'Success' });
 
     expect(service.wishlist()).toEqual(mockWishlist);
   });
@@ -65,7 +65,7 @@ describe('WishlistService', () => {
     const req = httpMock.expectOne(r => r.url.includes('/wishlist/remove'));
     expect(req.request.method).toBe('DELETE');
     expect(req.request.body).toEqual({ userId: 1, bookId: 10 });
-    req.flush(updatedWishlist);
+    req.flush({ data: updatedWishlist, success: true, message: 'Success' });
 
     expect(service.wishlist()).toEqual(updatedWishlist);
   });
