@@ -8,6 +8,8 @@ RUN npm install
 
 # Copy source code and build
 COPY . .
+ARG NG_APP_API_BASE_URL
+ENV NG_APP_API_BASE_URL=${NG_APP_API_BASE_URL}
 RUN npm run build -- --configuration production
 
 # Stage 2: Serve the application using Nginx
