@@ -26,14 +26,14 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-#      - name: Run Tests with Coverage
-#        run: npm run test:coverage
+      - name: Run Tests with Coverage
+        run: npm run test:coverage
 
-#      - name: SonarQube Scan
-#        uses: sonarsource/sonarqube-scan-action@master
-#        env:
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
   deploy:
     needs: test-and-analyze
@@ -54,16 +54,16 @@ jobs:
 
             # Clone or Pull Frontend
             if [ ! -d "booknest-frontend" ]; then
-              git clone https://github.com/Deepanshukhoushi/BookNest-Frontend.git booknest-frontend
+              git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Frontend.git booknest-frontend
             fi
             cd booknest-frontend
             git checkout dev
-            git pull origin dev
+            git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Frontend.git dev
             
             # Clone Backend if not present (needed for docker-compose.yml)
             cd ..
             if [ ! -d "booknest-backend" ]; then
-              git clone https://github.com/Deepanshukhoushi/BookNest-Backend.git booknest-backend
+              git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Backend.git booknest-backend
             fi
             
             # Build and restart only the frontend container
