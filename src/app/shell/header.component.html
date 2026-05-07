@@ -19,6 +19,15 @@
           class="search-input"
           autocomplete="off"
         >
+        <button 
+          type="button" 
+          class="clear-search-btn" 
+          *ngIf="searchTerm" 
+          (click)="clearSearch()" 
+          title="Clear search"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </form>
     </div>
     

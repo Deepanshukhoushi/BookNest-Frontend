@@ -79,7 +79,7 @@
               <div class="address-form">
                 <label class="field">
                   <span>Full name</span>
-                  <input [(ngModel)]="addressForm.fullName" name="fullName" type="text" placeholder="Full name" />
+                  <input [(ngModel)]="addressForm.fullName" name="fullName" type="text" placeholder="Full name" pattern="^[a-zA-Z\s]*$" />
                 </label>
 
                 <label class="field">
@@ -104,7 +104,7 @@
 
                 <label class="field">
                   <span>Pincode</span>
-                  <input [(ngModel)]="addressForm.pincode" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" />
+                  <input [(ngModel)]="addressForm.pincode" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" pattern="^[0-9]{6}$" />
                 </label>
               </div>
 

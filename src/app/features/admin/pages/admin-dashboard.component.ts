@@ -201,12 +201,20 @@ export class AdminDashboardComponent implements OnInit {
 
   displayedOrders = computed(() => {
     const orders = this.allOrders();
+    const users = this.allUsers();
     const filter = this.filterStatus();
     const query = this.orderSearchTerm().trim().toLowerCase();
 
-    let filtered = orders;
+    // Create a map for quick user lookup
+    const userMap = new Map(users.map(u => [u.userId, u]));
+
+    let filtered = orders.map(order => ({
+      ...order,
+      customerEmail: userMap.get(order.userId)?.email || 'N/A'
+    }));
+
     if (filter !== 'ALL') {
-      filtered = orders.filter(order => {
+      filtered = filtered.filter(order => {
         return order.orderStatus === (filter as OrderStatus);
       });
     }
@@ -214,7 +222,8 @@ export class AdminDashboardComponent implements OnInit {
     if (query) {
       filtered = filtered.filter(order =>
         String(order.orderId).includes(query) ||
-        order.bookName?.toLowerCase().includes(query)
+        order.bookName?.toLowerCase().includes(query) ||
+        order.customerEmail?.toLowerCase().includes(query)
       );
     }
 
@@ -312,11 +321,48 @@ export class AdminDashboardComponent implements OnInit {
     this.orderSearchTerm.set((event.target as HTMLInputElement).value ?? '');
   }
 
+  clearSearch() {
+    this.searchTerm.set('');
+    this.booksToShow.set(15);
+  }
+
+  clearOrderSearch() {
+    this.orderSearchTerm.set('');
+  }
+
   /**
    * Updates the fulfillment status of a specific order.
    * This method uses an optimistic update strategy, modifying the local signal 
    * immediately after receiving confirmation from the backend.
    */
+  /**
+   * Copies a formatted dispatch note to the admin's clipboard.
+   * Useful for shipping labels or customer support coordination.
+   */
+  copyDispatchInfo(order: any) {
+    const addr = order.address;
+    const dispatchNote = `
+--- BOOKNEST ORDER SUMMARY ---
+Order ID: #BN-${order.orderId}
+Status: ${order.orderStatus}
+
+CUSTOMER CONTACT:
+Name: ${addr?.fullName || 'N/A'}
+Email: ${order.customerEmail || 'N/A'}
+Phone: ${addr?.mobileNumber || 'N/A'}
+
+SHIPPING ADDRESS:
+${addr?.flatNumber || 'N/A'}, ${addr?.city || 'N/A'}
+${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
+-------------------------------
+    `.trim();
+
+    navigator.clipboard.writeText(dispatchNote).then(() => {
+      this.actionMessage.set(`Dispatch info for #BN-${order.orderId} copied!`);
+      setTimeout(() => this.actionMessage.set(''), 2000);
+    });
+  }
+
   updateStatus(orderId: number, status: string) {
     this.actionLoading.set(true);
     this.orderService.updateOrderStatus(orderId, status).subscribe({

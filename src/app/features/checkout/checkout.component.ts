@@ -141,6 +141,9 @@ export class CheckoutComponent implements OnInit {
     if (!fullName?.trim() || !phone?.trim() || !street?.trim() || !city?.trim() || !state?.trim() || !pincode?.trim()) {
       return 'Please complete all address fields.';
     }
+    if (!/^[a-zA-Z\s]*$/.test(fullName.trim())) {
+      return 'Full name must contain only characters.';
+    }
     if (!/^[0-9]{10}$/.test(phone.trim())) {
       return 'Phone number must be exactly 10 digits.';
     }

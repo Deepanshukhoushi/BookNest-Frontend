@@ -111,6 +111,7 @@ export interface Order {
   quantity: number;
   bookId: number;
   bookName: string;
+  customerEmail?: string;
   address?: Address;
   statusHistory: OrderStatusLog[];
 }

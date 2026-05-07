@@ -201,6 +201,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.updateMessage.set({ text: 'Name must be at least 2 characters.', type: 'error' });
       return;
     }
+    if (!/^[a-zA-Z\s]*$/.test(name)) {
+      this.updateMessage.set({ text: 'Name should contain characters only.', type: 'error' });
+      return;
+    }
     this.isUpdating.set(true);
     this.authService.updateProfile({ name }).subscribe({
       next: () => {
@@ -388,6 +392,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!draft.fullName.trim() || !draft.mobileNumber.trim() || !draft.flatNumber.trim() ||
       !draft.city.trim() || !draft.state.trim() || !draft.pincode.trim()) {
       this.updateMessage.set({ text: 'All address fields are required.', type: 'error' });
+      return;
+    }
+
+    if (!/^[a-zA-Z\s]*$/.test(draft.fullName.trim())) {
+      this.updateMessage.set({ text: 'Name should contain characters only.', type: 'error' });
       return;
     }
 

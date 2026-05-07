@@ -190,7 +190,10 @@
           </div>
           <div class="search-box">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Filter library..." (input)="onSearchChange($event)">
+            <input type="text" placeholder="Filter library..." [value]="searchTerm()" (input)="onSearchChange($event)">
+            <button class="clear-btn" *ngIf="searchTerm()" (click)="clearSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
           </div>
         </div>
         <div *ngIf="actionLoading()" style="padding: 0.5rem 1.5rem;">Processing...</div>
@@ -261,7 +264,10 @@
           <h3>Logistics & Acquisitions</h3>
           <div class="search-box">
             <span class="material-symbols-outlined">search</span>
-            <input type="text" placeholder="Search orders..." (input)="onOrderSearchChange($event)">
+            <input type="text" placeholder="Search orders..." [value]="orderSearchTerm()" (input)="onOrderSearchChange($event)">
+            <button class="clear-btn" *ngIf="orderSearchTerm()" (click)="clearOrderSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
           </div>
         </div>
         <div class="filter-actions" style="display: flex; gap: 0.3rem; padding: 0.5rem 1.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(113, 121, 115, 0.1);">
@@ -278,30 +284,58 @@
         <div class="acquisitions-list">
           <div class="acq-item" *ngFor="let order of displayedOrders()">
             <div class="acq-info">
-              <h5>{{ order.bookName }} <small>(Ordered)</small></h5>
-              <p>#BN-{{ order.orderId }} • {{ order.orderDate | date:'short' }}</p>
+              <div class="order-header-row">
+                <h5>{{ order.bookName }}</h5>
+                <span class="order-id-tag">#BN-{{ order.orderId }}</span>
+              </div>
+              <p class="order-timestamp">{{ order.orderDate | date:'short' }}</p>
               
-              <!-- User Address for Fulfillment -->
-              <div *ngIf="order.address" class="acq-address" style="margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.03); border-radius: 4px;">
-                <div style="font-size: 0.7rem; font-weight: 600; color: var(--color-primary); display: flex; align-items: center; gap: 4px;">
-                  <span class="material-symbols-outlined" style="font-size: 14px;">location_on</span>
-                  Shipping Destination:
+              <!-- Enhanced Customer & Shipping Info -->
+              <div class="fulfillment-details">
+                <div class="detail-section">
+                  <h6 class="section-label">Customer Details:</h6>
+                  <div class="detail-row">
+                    <span class="material-symbols-outlined icon-small">person</span>
+                    <span class="detail-text bold">{{ order.address?.fullName || 'N/A' }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="material-symbols-outlined icon-small">mail</span>
+                    <a [href]="'mailto:' + order.customerEmail" class="detail-text email-link" title="Click to email">{{ order.customerEmail }}</a>
+                  </div>
+                  <div class="detail-row">
+                    <span class="material-symbols-outlined icon-small">call</span>
+                    <span class="detail-text">{{ order.address?.mobileNumber || 'N/A' }}</span>
+                  </div>
                 </div>
-                <div style="font-size: 0.7rem; color: var(--text-primary); margin-top: 2px;">
-                  {{ order.address.fullName }} • {{ order.address.mobileNumber }}<br>
-                  {{ order.address.flatNumber }}, {{ order.address.city }}, {{ order.address.state }} - {{ order.address.pincode }}
+
+                <div class="detail-section">
+                  <h6 class="section-label">Shipping To:</h6>
+                  <div class="detail-row">
+                    <span class="material-symbols-outlined icon-small">location_on</span>
+                    <span class="detail-text">
+                      {{ order.address?.flatNumber }}, {{ order.address?.city }}<br>
+                      {{ order.address?.state }} - {{ order.address?.pincode }}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div class="status-updater" style="margin-top: 0.5rem;">
-                <select [value]="order.orderStatus" (change)="updateStatus(order.orderId, $any($event.target).value)" 
-                        style="font-size: 0.7rem; padding: 0.2rem; border-radius: 4px; background: var(--surface); color: var(--on-surface); border: 1px solid var(--border-color);">
-                  <option *ngFor="let s of availableFilters.slice(1)" [value]="s">{{ getFilterLabel(s) }}</option>
-                </select>
+
+              <div class="order-actions-row">
+                <button class="dispatch-copy-btn" (click)="copyDispatchInfo(order)">
+                  <span class="material-symbols-outlined">content_copy</span>
+                  Copy Full Dispatch Info
+                </button>
+
+                <div class="status-updater">
+                  <select [value]="order.orderStatus" (change)="updateStatus(order.orderId, $any($event.target).value)">
+                    <option *ngFor="let s of availableFilters.slice(1)" [value]="s">{{ getFilterLabel(s) }}</option>
+                  </select>
+                </div>
               </div>
             </div>
             <div class="acq-meta">
               <div class="acq-price">₹{{ order.amountPaid }}</div>
-              <span class="acq-badge" [ngClass]="order.orderStatus.toLowerCase()" style="font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 10px; background: rgba(var(--color-primary-rgb), 0.1);">{{ order.orderStatus }}</span>
+              <span class="acq-badge" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
             </div>
           </div>
           <div *ngIf="displayedOrders().length === 0" style="padding: 2rem; text-align: center; color: var(--on-surface-variant);">

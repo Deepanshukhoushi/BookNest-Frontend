@@ -163,6 +163,12 @@ export class HeaderComponent {
     this.searchSubject.next(this.searchTerm);
   }
 
+  // Resets the search term and clears active results
+  clearSearch() {
+    this.searchTerm = '';
+    this.onSearchInput();
+  }
+
   headerImageError = signal(false);
 
   // Clears the user session and performs a secure logout

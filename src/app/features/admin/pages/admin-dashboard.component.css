@@ -281,6 +281,34 @@
   color: var(--text-secondary);
 }
 
+.search-box .clear-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.search-box .clear-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--color-error);
+}
+
+.search-box .clear-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+  position: static;
+  transform: none;
+}
+
 /* Table */
 .data-table {
   width: 100%;
@@ -500,9 +528,23 @@
   .admin-main {
     padding: 1.5rem;
   }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
 }
 
-/* ─── Review Moderation Panel ────────────────────────────────────────────── */
+/* â”€â”€â”€ Review Moderation Panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 
 .review-moderation-panel {
   container-type: inline-size;
@@ -1002,3 +1044,145 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Enhanced Logistics & Acquisitions Styles */
+.order-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.order-id-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: rgba(127, 22, 53, 0.08);
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.order-timestamp {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.fulfillment-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0,0,0,0.03);
+}
+
+.detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.icon-small {
+  font-size: 1rem !important;
+  color: var(--color-primary);
+  opacity: 0.7;
+}
+
+.detail-text {
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.detail-text.bold {
+  font-weight: 600;
+}
+
+.email-link {
+  color: var(--color-primary);
+  text-decoration: none;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.2s;
+  font-size: 0.75rem; /* Slightly smaller as requested */
+}
+
+.email-link:hover {
+  border-bottom-color: var(--color-primary);
+}
+
+.order-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.dispatch-copy-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dispatch-copy-btn:hover {
+  background: var(--color-primary);
+  color: white;
+}
+
+.dispatch-copy-btn .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+/* Adjusting status updater for new layout */
+.status-updater select {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: white;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.status-updater select:focus {
+  border-color: var(--color-primary);
+}
+
+@media (max-width: 1200px) {
+  .fulfillment-details {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+

@@ -1,4 +1,4 @@
-/* ============================
+ï»¿/* ============================
    Dashboard Layout
    ============================ */
 .member-layout {
@@ -682,10 +682,10 @@
 }
 
 /* ============================================================
-   DASHBOARD — Enhanced Production Polish
+   DASHBOARD â€” Enhanced Production Polish
    ============================================================ */
 
-/* Sidebar nav link active state — bolder */
+/* Sidebar nav link active state â€” bolder */
 .nav-link.active {
   background: rgba(127, 22, 53, 0.08) !important;
   color: var(--color-primary) !important;
@@ -704,7 +704,7 @@
   border-left-color: var(--neutral-300);
 }
 
-/* Stat boxes — lift on hover */
+/* Stat boxes â€” lift on hover */
 .stat-box {
   transition: var(--transition-base);
   cursor: pointer;

@@ -159,6 +159,30 @@
   color: white;
 }
 
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all var(--transition-fast);
+}
+
+.clear-search-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.clear-search-btn .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
 /* ============================
    Icon Actions
    ============================ */
@@ -228,6 +252,22 @@
   overflow: hidden;
   animation: slideInDown 0.3s cubic-bezier(0, 0, 0.2, 1) both;
   z-index: 2000;
+}
+
+@media (max-width: 600px) {
+  .notification-dropdown {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    right: 10px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+    right: 10px;
+  }
+  
+  .notification-dropdown::before {
+    display: none;
+  }
 }
 
 .dropdown-header {
@@ -352,6 +392,12 @@
   padding: var(--space-4xl) var(--space-2xl);
   text-align: center;
   color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .empty-state {
+    padding: var(--space-2xl) var(--space-xl);
+  }
 }
 
 .empty-state .large-icon {
@@ -556,6 +602,13 @@
   .search-section {
     display: none;
   }
+  .icon-actions {
+    gap: 2px;
+    margin-left: auto;
+  }
+  .logo-section {
+    margin-right: auto;
+  }
 }
 
 /* ============================================================
@@ -686,7 +739,7 @@
   border-radius: 40px;
   color: white;
   min-height: unset;
-  padding: 8px 12px 8px 36px;
+  padding: 8px 36px 8px 36px;
   font-size: var(--text-sm);
   font-family: var(--font-body);
   width: 100%;
