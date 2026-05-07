@@ -258,6 +258,16 @@
   box-shadow: var(--shadow-lg);
 }
 
+.primary-action.sold-out {
+  background: var(--neutral-400) !important;
+  color: white !important;
+  cursor: not-allowed;
+  opacity: 0.8;
+  transform: none !important;
+  box-shadow: none !important;
+  border: 1px solid var(--neutral-500);
+}
+
 .fav-action {
   width: 2.5rem;
   height: 2.5rem;
@@ -386,9 +396,13 @@
 }
 
 .spec-info span {
-  font-weight: 700;
   color: var(--text-primary);
   font-size: var(--text-xs);
+}
+
+.text-danger {
+  color: #dc3545 !important;
+  font-weight: 800 !important;
 }
 
 /* Skeletons */

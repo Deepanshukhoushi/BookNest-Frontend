@@ -37,6 +37,16 @@ export class OAuthRedirectComponent implements OnInit {
     combineLatest([this.route.queryParamMap, this.route.fragment])
       .pipe(take(1))
       .subscribe(([query, fragment]) => {
+        const error = query.get('error');
+        if (error) {
+          this.loading.set(false);
+          this.router.navigate(['/auth'], { 
+            queryParams: { error }, 
+            replaceUrl: true 
+          });
+          return;
+        }
+
         const tokenFromQuery = query.get('token') || query.get('access_token');
         const tokenFromFragment = readTokenFromFragment(fragment);
         const token = tokenFromQuery || tokenFromFragment;

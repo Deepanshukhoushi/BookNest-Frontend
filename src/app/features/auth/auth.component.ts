@@ -39,6 +39,11 @@ export class AuthComponent implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/']);
     }
+
+    const error = this.route.snapshot.queryParamMap.get('error');
+    if (error) {
+      this.error.set(error);
+    }
   }
 
   authMode = signal<AuthMode>('login');

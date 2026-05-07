@@ -1,12 +1,13 @@
 <article class="book-card-alt">
-  <div class="card-tag" *ngIf="tag()">{{ tag() }}</div>
+  <div class="card-tag" *ngIf="tag() && stock() > 0">{{ tag() }}</div>
+  <div class="sold-out-badge" *ngIf="stock() <= 0">SOLD OUT</div>
   
   <div class="card-image-wrapper">
-    <img loading="lazy" [src]="getSafeImageUrl()" [alt]="title()" (error)="onImageError($event)">
+    <img loading="lazy" [src]="getSafeImageUrl()" [alt]="title()" (error)="onImageError($event)" [class.grayscale]="stock() <= 0">
     
     <!-- Quick Actions Overlay -->
     <div class="card-actions">
-      <button class="action-btn" (click)="addToCart($event)" title="Add to Cart">
+      <button class="action-btn" (click)="addToCart($event)" title="Add to Cart" [disabled]="stock() <= 0" [class.disabled]="stock() <= 0">
         <span class="material-symbols-outlined">shopping_cart</span>
       </button>
       <button class="action-btn" (click)="addToWishlist($event)" title="Add to Wishlist" *ngIf="!isWishlist()">

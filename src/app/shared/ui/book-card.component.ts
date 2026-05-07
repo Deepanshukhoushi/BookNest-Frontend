@@ -26,6 +26,7 @@ export class BookCardComponent {
   rating = input<number>(0);
   reviewCount = input<number>(0);
   tag = input<string>();
+  stock = input<number>(1);
   variant = input<'home' | 'listing'>('home');
   isWishlist = input<boolean>(false);
 

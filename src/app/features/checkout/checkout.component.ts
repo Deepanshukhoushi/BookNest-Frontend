@@ -35,6 +35,10 @@ export class CheckoutComponent implements OnInit {
   paymentMethod = signal<PaymentMethod>('WALLET');
   message = signal('');
   messageType = signal<'success' | 'error' | ''>('');
+  
+  isSubmitted = signal(false);
+  addressErrors = signal<Record<string, string>>({});
+  hasErrors = computed(() => Object.keys(this.addressErrors()).length > 0);
 
   addressForm = {
     fullName: '',
@@ -124,9 +128,11 @@ export class CheckoutComponent implements OnInit {
   // Advances to the next step in the checkout process after validation
   nextStep() {
     if (this.currentStep() === 'address') {
-      const validationError = this.getAddressValidationError();
-      if (validationError) {
-        this.notificationService.error(validationError);
+      this.isSubmitted.set(true);
+      this.updateAddressErrors();
+      
+      if (Object.keys(this.addressErrors()).length > 0) {
+        this.notificationService.error('Please correct the highlighted errors.');
         return;
       }
       this.currentStep.set('payment');
@@ -135,27 +141,43 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
-  // Returns a validation error message, or null if the address is valid
-  private getAddressValidationError(): string | null {
+  // Updates the addressErrors signal with current validation status
+  updateAddressErrors() {
+    const errors: Record<string, string> = {};
     const { fullName, phone, street, city, state, pincode } = this.addressForm;
-    if (!fullName?.trim() || !phone?.trim() || !street?.trim() || !city?.trim() || !state?.trim() || !pincode?.trim()) {
-      return 'Please complete all address fields.';
+
+    if (!fullName?.trim()) errors['fullName'] = 'Full Name is required.';
+    else if (!/^[a-zA-Z\s]*$/.test(fullName.trim())) errors['fullName'] = 'Name must contain only characters.';
+
+    if (!phone?.trim()) errors['phone'] = 'Phone Number is required.';
+    else if (!/^[0-9]{10}$/.test(phone.trim())) errors['phone'] = 'Phone must be exactly 10 digits.';
+
+    if (!street?.trim()) errors['street'] = 'Street Address is required.';
+    if (!city?.trim()) errors['city'] = 'City is required.';
+    if (!state?.trim()) errors['state'] = 'State is required.';
+
+    if (!pincode?.trim()) errors['pincode'] = 'Pincode is required.';
+    else if (!/^[0-9]{6}$/.test(pincode.trim())) errors['pincode'] = 'Pincode must be exactly 6 digits.';
+
+    this.addressErrors.set(errors);
+  }
+
+  // Helper to check if a specific field has an error (used in template)
+  hasFieldError(field: string): boolean {
+    return this.isSubmitted() && !!this.addressErrors()[field];
+  }
+
+  // Reactive validation on input change
+  onInputChange() {
+    if (this.isSubmitted()) {
+      this.updateAddressErrors();
     }
-    if (!/^[a-zA-Z\s]*$/.test(fullName.trim())) {
-      return 'Full name must contain only characters.';
-    }
-    if (!/^[0-9]{10}$/.test(phone.trim())) {
-      return 'Phone number must be exactly 10 digits.';
-    }
-    if (!/^[0-9]{6}$/.test(pincode.trim())) {
-      return 'Pincode must be exactly 6 digits.';
-    }
-    return null;
   }
 
   // Helper to check if all required address fields are provided and valid
   private isAddressValid(): boolean {
-    return this.getAddressValidationError() === null;
+    this.updateAddressErrors();
+    return Object.keys(this.addressErrors()).length === 0;
   }
 
   // Switches the active checkout step if current data is valid

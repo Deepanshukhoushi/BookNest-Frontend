@@ -101,6 +101,7 @@ export class CartService {
 
     return this.http.delete<ApiResponse<null>>(`${this.API_URL}/clear`, {
       body: { userId: user.userId },
+      headers: { 'X-Skip-Toast': 'true' }
     }).pipe(
       map(response => response.message),
       tap(() => this.cartSignal.set(null))

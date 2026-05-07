@@ -77,35 +77,71 @@
               </div>
 
               <div class="address-form">
-                <label class="field">
-                  <span>Full name</span>
-                  <input [(ngModel)]="addressForm.fullName" name="fullName" type="text" placeholder="Full name" pattern="^[a-zA-Z\s]*$" />
-                </label>
+                <div class="form-field-group">
+                  <label class="field" [class.error-field]="hasFieldError('fullName')">
+                    <span>Full name</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" name="fullName" type="text" placeholder="Full name" [class.invalid]="hasFieldError('fullName')" />
+                      <span *ngIf="hasFieldError('fullName')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('fullName')" class="error-msg">❌ {{ addressErrors()['fullName'] }}</span>
+                  </label>
+                </div>
 
-                <label class="field">
-                  <span>Phone</span>
-                  <input [(ngModel)]="addressForm.phone" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" />
-                </label>
+                <div class="form-field-group">
+                  <label class="field" [class.error-field]="hasFieldError('phone')">
+                    <span>Phone</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" [class.invalid]="hasFieldError('phone')" />
+                      <span *ngIf="hasFieldError('phone')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('phone')" class="error-msg">❌ {{ addressErrors()['phone'] }}</span>
+                  </label>
+                </div>
 
-                <label class="field field-wide">
-                  <span>Street</span>
-                  <input [(ngModel)]="addressForm.street" name="street" type="text" placeholder="Flat/House no, Street" />
-                </label>
+                <div class="form-field-group field-wide">
+                  <label class="field" [class.error-field]="hasFieldError('street')">
+                    <span>Street</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" name="street" type="text" placeholder="Flat/House no, Street" [class.invalid]="hasFieldError('street')" />
+                      <span *ngIf="hasFieldError('street')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('street')" class="error-msg">❌ {{ addressErrors()['street'] }}</span>
+                  </label>
+                </div>
 
-                <label class="field">
-                  <span>City</span>
-                  <input [(ngModel)]="addressForm.city" name="city" type="text" placeholder="City" />
-                </label>
+                <div class="form-field-group">
+                  <label class="field" [class.error-field]="hasFieldError('city')">
+                    <span>City</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" name="city" type="text" placeholder="City" [class.invalid]="hasFieldError('city')" />
+                      <span *ngIf="hasFieldError('city')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('city')" class="error-msg">❌ {{ addressErrors()['city'] }}</span>
+                  </label>
+                </div>
 
-                <label class="field">
-                  <span>State</span>
-                  <input [(ngModel)]="addressForm.state" name="state" type="text" placeholder="State" />
-                </label>
+                <div class="form-field-group">
+                  <label class="field" [class.error-field]="hasFieldError('state')">
+                    <span>State</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" name="state" type="text" placeholder="State" [class.invalid]="hasFieldError('state')" />
+                      <span *ngIf="hasFieldError('state')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('state')" class="error-msg">❌ {{ addressErrors()['state'] }}</span>
+                  </label>
+                </div>
 
-                <label class="field">
-                  <span>Pincode</span>
-                  <input [(ngModel)]="addressForm.pincode" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" pattern="^[0-9]{6}$" />
-                </label>
+                <div class="form-field-group">
+                  <label class="field" [class.error-field]="hasFieldError('pincode')">
+                    <span>Pincode</span>
+                    <div class="input-wrapper">
+                      <input [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" [class.invalid]="hasFieldError('pincode')" />
+                      <span *ngIf="hasFieldError('pincode')" class="error-icon-field">❌</span>
+                    </div>
+                    <span *ngIf="hasFieldError('pincode')" class="error-msg">❌ {{ addressErrors()['pincode'] }}</span>
+                  </label>
+                </div>
               </div>
 
               <div *ngIf="message()" class="inline-message" [class.error]="messageType() === 'error'" [class.success]="messageType() === 'success'">
@@ -217,7 +253,7 @@
         <button 
           class="complete-btn" 
           (click)="confirmOrder()"
-          [disabled]="isProcessing()">
+          [disabled]="isProcessing() || (isSubmitted() && hasErrors())">
           <span *ngIf="isProcessing()" class="material-symbols-outlined animate-spin">progress_activity</span>
           {{ isProcessing() ? 'Placing Order...' : 'Place Order' }}
           <span *ngIf="!isProcessing()" class="material-symbols-outlined">arrow_forward</span>

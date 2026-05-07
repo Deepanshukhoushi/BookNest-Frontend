@@ -131,7 +131,8 @@
         [imageUrl]="book.coverImageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCQt6DSXLCSlx_dMm-mTTLkGiMYDyH8ZjVMVAOJ04QEokNsCQiJpKmi-my5tG2SKaErowY7x6XnNUf5wCsaKNo54sKiXBZIDCKrfyW7kCMCfHbwF571eNkMP5TO5L6CMJ3Ce1UEVrOOr69Zz7unvNeAXFeB8sfmRW2Q8pWdzdun2q6hNnqIiNniWf1OZzjuVaQ94jLLuC1_tY2ETu__12RpIOjBxqT6_2-4EFQQ1EAGgC_bAyYPn6sgMiU03dpIHeztIs1A98_qDS0'"
         [rating]="book.rating || 0"
         [category]="book.genre"
-        [tag]="book.stock < 5 ? 'Limited' : ''"
+        [tag]="book.stock > 0 && book.stock < 5 ? 'Limited' : ''"
+        [stock]="book.stock"
         variant="listing"
         [routerLink]="['/book', book.bookId]"
       ></app-book-card>

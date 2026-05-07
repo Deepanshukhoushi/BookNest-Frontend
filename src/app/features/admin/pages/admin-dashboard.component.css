@@ -148,6 +148,45 @@
   background-color: var(--color-surface);
 }
 
+/* Feedback Alerts */
+.feedback-container {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.alert-box {
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideDownFade 0.3s ease-out;
+}
+
+.alert-box.loading {
+  background-color: rgba(127, 22, 53, 0.05);
+  color: var(--color-primary);
+  border: 1px solid rgba(127, 22, 53, 0.1);
+}
+
+.alert-box.success {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.alert-box.error {
+  background-color: rgba(186, 26, 26, 0.08);
+  color: var(--color-error);
+  border: 1px solid rgba(186, 26, 26, 0.15);
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 /* Bento Metrics */
 .metrics-grid {
   display: grid;

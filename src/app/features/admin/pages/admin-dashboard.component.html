@@ -66,6 +66,13 @@
         </button>
       </div>
     </header>
+    
+    <!-- Central Feedback Alerts -->
+    <div class="feedback-container">
+      <div *ngIf="actionLoading()" class="alert-box loading">Processing...</div>
+      <div *ngIf="actionMessage()" class="alert-box success">{{ actionMessage() }}</div>
+      <div *ngIf="actionError()" class="alert-box error">{{ actionError() }}</div>
+    </div>
 
     @if (activeView() === 'overview') {
       <!-- Bento Grid Metrics -->
@@ -158,12 +165,12 @@
           <div>
             <h4>New / Active Orders</h4>
             <div class="insight-list compact">
-              <div class="insight-row" *ngFor="let order of adminAlerts().newOrders">
+              <div class="insight-row interactive" *ngFor="let order of adminAlerts().newOrders" (click)="setView('orders')" style="cursor: pointer;">
                 <div>
                   <strong>#BN-{{ order.orderId }}</strong>
                   <p>{{ order.bookName }}</p>
                 </div>
-                <span>{{ order.orderStatus }}</span>
+                <span class="acq-badge" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
               </div>
               <div *ngIf="adminAlerts().newOrders.length === 0" class="empty-panel">
                 No active order alerts right now.
@@ -196,9 +203,6 @@
             </button>
           </div>
         </div>
-        <div *ngIf="actionLoading()" style="padding: 0.5rem 1.5rem;">Processing...</div>
-        <div *ngIf="actionMessage()" style="padding: 0.5rem 1.5rem; color: #1f8f4a;">{{ actionMessage() }}</div>
-        <div *ngIf="actionError()" style="padding: 0.5rem 1.5rem; color: #c0392b;">{{ actionError() }}</div>
         <div *ngIf="loading()" style="padding: 2rem; text-align: center;">Consulting the library archives...</div>
         
         <table class="data-table" *ngIf="!loading()">

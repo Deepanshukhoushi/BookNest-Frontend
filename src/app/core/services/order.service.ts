@@ -63,7 +63,9 @@ export class OrderService {
 
   // Initiates the checkout process for standard or wallet payments
   checkout(payload: CheckoutPayload) {
-    return this.http.post<ApiResponse<Order[]>>(`${this.API_URL}/checkout`, payload).pipe(
+    return this.http.post<ApiResponse<Order[]>>(`${this.API_URL}/checkout`, payload, {
+      headers: { 'X-Skip-Toast': 'true' }
+    }).pipe(
       map(response => response.data)
     );
   }
@@ -77,7 +79,9 @@ export class OrderService {
 
   // Verifies the authenticity of a completed online payment
   verifyPayment(verifyPayload: any) {
-    return this.http.post<ApiResponse<Order[]>>(`${this.PAYMENT_URL}/verify`, verifyPayload).pipe(
+    return this.http.post<ApiResponse<Order[]>>(`${this.PAYMENT_URL}/verify`, verifyPayload, {
+      headers: { 'X-Skip-Toast': 'true' }
+    }).pipe(
       map(response => response.data)
     );
   }

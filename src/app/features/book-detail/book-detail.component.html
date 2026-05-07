@@ -1,4 +1,4 @@
-﻿@if (hasError()) {
+@if (hasError()) {
   <div class="max-width-container" style="padding: 2rem;">
     <app-error-message [message]="errorMessage()" (retry)="retryFetch()"></app-error-message>
   </div>
@@ -62,9 +62,12 @@
               </button>
             </div>
             
-            <button class="primary-action" (click)="addToCart()" [disabled]="addToCartLoading()">
+            <button class="primary-action" (click)="addToCart()" [disabled]="addToCartLoading() || (book()?.stock || 0) <= 0" [class.sold-out]="(book()?.stock || 0) <= 0">
               @if (addToCartLoading()) {
                 <div class="spinner" style="width:18px;height:18px;border-width:2px;"></div>
+              } @else if ((book()?.stock || 0) <= 0) {
+                <span class="material-symbols-outlined">block</span>
+                Sold Out
               } @else {
                 <span class="material-symbols-outlined">shopping_bag</span>
                 Add to Cart
@@ -117,7 +120,9 @@
                   <span class="spec-icon material-symbols-outlined">inventory_2</span>
                   <div class="spec-info">
                     <label>Availability</label>
-                    <span>{{ book()?.stock }} In Stock</span>
+                    <span [class.text-danger]="(book()?.stock || 0) <= 0">
+                      {{ (book()?.stock || 0) <= 0 ? 'Out of Stock' : (book()?.stock + ' In Stock') }}
+                    </span>
                   </div>
                 </div>
               </div>

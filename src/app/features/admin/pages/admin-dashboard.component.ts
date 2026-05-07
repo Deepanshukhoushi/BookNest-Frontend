@@ -190,8 +190,15 @@ export class AdminDashboardComponent implements OnInit {
   adminAlerts = computed(() => {
     const lowStock = this.inventory().filter(book => book.stock <= 5);
     const newOrders = this.allOrders()
-      .filter(order => [OrderStatus.PLACED, OrderStatus.CONFIRMED].includes(order.orderStatus))
-      .slice(0, 5);
+      .filter(order => [
+        OrderStatus.PLACED, 
+        OrderStatus.CONFIRMED, 
+        OrderStatus.PAID, 
+        OrderStatus.SHIPPED, 
+        OrderStatus.OUT_FOR_DELIVERY
+      ].includes(order.orderStatus))
+      .sort((a, b) => b.orderId - a.orderId) // Show newest first
+      .slice(0, 10);
 
     return {
       lowStock,
@@ -339,12 +346,17 @@ export class AdminDashboardComponent implements OnInit {
    * Copies a formatted dispatch note to the admin's clipboard.
    * Useful for shipping labels or customer support coordination.
    */
-  copyDispatchInfo(order: any) {
+  copyDispatchInfo(order: Order & { customerEmail?: string }) {
     const addr = order.address;
     const dispatchNote = `
---- BOOKNEST ORDER SUMMARY ---
+--- BOOKNEST DISPATCH SUMMARY ---
 Order ID: #BN-${order.orderId}
 Status: ${order.orderStatus}
+
+ITEM DETAILS:
+Title: ${order.bookName}
+Quantity: ${order.quantity}
+Amount: INR ${order.amountPaid}
 
 CUSTOMER CONTACT:
 Name: ${addr?.fullName || 'N/A'}
@@ -354,13 +366,41 @@ Phone: ${addr?.mobileNumber || 'N/A'}
 SHIPPING ADDRESS:
 ${addr?.flatNumber || 'N/A'}, ${addr?.city || 'N/A'}
 ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
--------------------------------
+----------------------------------
     `.trim();
 
-    navigator.clipboard.writeText(dispatchNote).then(() => {
+    const handleSuccess = () => {
       this.actionMessage.set(`Dispatch info for #BN-${order.orderId} copied!`);
-      setTimeout(() => this.actionMessage.set(''), 2000);
-    });
+      setTimeout(() => this.actionMessage.set(''), 3000);
+    };
+
+    const handleError = (err: any) => {
+      console.error('Clipboard copy failed:', err);
+      this.actionError.set('Clipboard access failed. Please copy manually.');
+      setTimeout(() => this.actionError.set(''), 3000);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(dispatchNote).then(handleSuccess).catch(handleError);
+    } else {
+      // Fallback for non-secure contexts or older browsers
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = dispatchNote;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        if (successful) handleSuccess();
+        else handleError('execCommand failed');
+      } catch (err) {
+        handleError(err);
+      }
+    }
   }
 
   updateStatus(orderId: number, status: string) {

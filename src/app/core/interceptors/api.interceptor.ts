@@ -29,7 +29,9 @@ export const apiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
       // SUCCESS HANDLING
       if (response?.body?.success === true && response.body?.message) {
         // Suppress success toasts for GET requests and all auth requests (auth handled inline)
-        if (req.method !== 'GET' && !isAuthRequest) {
+        // Also suppress if 'X-Skip-Toast' header is present
+        const skipToast = req.headers.has('X-Skip-Toast');
+        if (req.method !== 'GET' && !isAuthRequest && !skipToast) {
           notificationService.success(response.body.message);
         }
       }

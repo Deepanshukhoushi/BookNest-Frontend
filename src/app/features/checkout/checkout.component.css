@@ -209,6 +209,46 @@
   }
 }
 
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper input {
+  padding-right: 2.5rem !important; /* Make room for X icon */
+}
+
+.error-icon-field {
+  position: absolute;
+  right: 0.75rem;
+  color: #d32f2f;
+  font-size: 0.9rem;
+  pointer-events: none;
+  font-weight: bold;
+}
+
+.error-msg {
+  color: #d32f2f;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  letter-spacing: 0.02em;
+}
+
+.field.error-field span {
+  color: #d32f2f;
+}
+
+.field input.invalid {
+  border: 2.5px solid #d32f2f !important;
+  background-color: #fff1f1 !important;
+  box-shadow: none !important;
+}
+
 .field {
   display: flex;
   flex-direction: column;
