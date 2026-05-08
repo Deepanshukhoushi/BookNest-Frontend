@@ -10,7 +10,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { environment } from '../../../environments/environment';
 
 type CheckoutStep = 'address' | 'payment' | 'review';
-type PaymentMethod = 'WALLET' | 'ONLINE';
+type PaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
 
 /**
  * Component managing the multi-step checkout process.
@@ -87,6 +87,7 @@ export class CheckoutComponent implements OnInit {
       state: address.state,
       pincode: address.pincode
     };
+    this.updateAddressErrors(); // Sync errors immediately
   }
 
   // Clears the form and selection to allow manual entry of a new address
@@ -147,7 +148,8 @@ export class CheckoutComponent implements OnInit {
     const { fullName, phone, street, city, state, pincode } = this.addressForm;
 
     if (!fullName?.trim()) errors['fullName'] = 'Full Name is required.';
-    else if (!/^[a-zA-Z\s]*$/.test(fullName.trim())) errors['fullName'] = 'Name must contain only characters.';
+    else if (/[0-9]/.test(fullName)) errors['fullName'] = 'Name cannot contain numeric characters.';
+    else if (!/^[a-zA-Z\s.-]*$/.test(fullName.trim())) errors['fullName'] = 'Name can only contain letters, dots, and hyphens.';
 
     if (!phone?.trim()) errors['phone'] = 'Phone Number is required.';
     else if (!/^[0-9]{10}$/.test(phone.trim())) errors['phone'] = 'Phone must be exactly 10 digits.';
@@ -164,14 +166,20 @@ export class CheckoutComponent implements OnInit {
 
   // Helper to check if a specific field has an error (used in template)
   hasFieldError(field: string): boolean {
-    return this.isSubmitted() && !!this.addressErrors()[field];
+    const error = this.addressErrors()[field];
+    if (!error) return false;
+    
+    // Always show if already submitted
+    if (this.isSubmitted()) return true;
+    
+    // Otherwise, only show format errors (not 'required' errors) while typing
+    return !error.includes('required');
   }
 
   // Reactive validation on input change
   onInputChange() {
-    if (this.isSubmitted()) {
-      this.updateAddressErrors();
-    }
+    this.selectedAddressId.set(null); // Clear selection on manual edit
+    this.updateAddressErrors();
   }
 
   // Helper to check if all required address fields are provided and valid
@@ -194,6 +202,8 @@ export class CheckoutComponent implements OnInit {
   // Main entry point for confirming and submitting the user's order
   confirmOrder() {
     const user = this.authService.currentUser();
+    this.isSubmitted.set(true); // Trigger validation UI
+    
     if (!user || !user.userId) {
       this.notificationService.error('Session expired. Please login again.');
       this.router.navigate(['/auth'], { queryParams: { returnUrl: '/checkout' } });

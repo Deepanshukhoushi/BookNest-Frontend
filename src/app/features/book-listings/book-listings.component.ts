@@ -199,8 +199,9 @@ export class BookListingsComponent implements OnInit {
            this.minRating() !== null;
   });
 
-  // Resets all active filters to their initial unrestricted states
+  // Resets all active filters and search term to their initial unrestricted states
   clearAllFilters() {
+    this.searchService.clearSearch();
     this.selectedGenre.set(null);
     this.minPrice.set(0);
     this.maxPrice.set(2000);

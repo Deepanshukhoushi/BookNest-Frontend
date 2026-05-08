@@ -83,7 +83,8 @@ export class HeaderComponent {
       distinctUntilChanged()
     ).subscribe(term => {
       this.searchService.setSearchTerm(term);
-      if (this.router.url !== '/books') {
+      const currentUrl = this.router.url.split('?')[0];
+      if (currentUrl !== '/books') {
         this.router.navigate(['/books']);
       }
     });

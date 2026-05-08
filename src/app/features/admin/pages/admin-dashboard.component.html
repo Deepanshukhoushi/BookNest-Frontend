@@ -538,4 +538,14 @@
       </div>
     </div>
   }
+  
+  <app-confirm-modal
+    [show]="showConfirmModal()"
+    [title]="confirmModalConfig().title"
+    [message]="confirmModalConfig().message"
+    [confirmText]="confirmModalConfig().confirmText"
+    [isDestructive]="confirmModalConfig().isDestructive"
+    (confirm)="onConfirmAction()"
+    (cancel)="showConfirmModal.set(false)"
+  ></app-confirm-modal>
 </div>

@@ -108,7 +108,7 @@ describe('AuthComponent', () => {
       email: 'john@example.com',
       password: 'password123',
       confirmPassword: 'password123',
-      mobile: '1234567890'
+      mobile: '9876543210'
     };
 
     component.onSubmit();

@@ -156,6 +156,29 @@
           <h2 class="checkout-section-title" style="font-size: 1.875rem; border-bottom: 2px solid var(--surface-container-highest); display: inline-block; padding-bottom: 0.5rem; margin-bottom: 2rem;">Payment Method</h2>
           
           <div class="payment-grid">
+            <!-- Cash on Delivery -->
+            <label class="payment-option">
+              <input
+                type="radio"
+                id="payment-cod"
+                name="payment"
+                style="display: none;"
+                [checked]="paymentMethod() === 'COD'"
+                (change)="paymentMethod.set('COD')">
+              <div class="payment-option-card">
+                <div class="option-header">
+                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
+                    <span class="material-symbols-outlined">payments</span>
+                  </div>
+                  <div class="radio-circle">
+                    <div class="radio-inner"></div>
+                  </div>
+                </div>
+                <div class="option-title">Cash on Delivery</div>
+                <p class="option-desc">Pay upon arrival. Fast and reliable fulfillment.</p>
+              </div>
+            </label>
+
             <!-- Wallet Payment -->
             <label class="payment-option">
               <input
@@ -252,11 +275,13 @@
 
         <button 
           class="complete-btn" 
-          (click)="confirmOrder()"
+          (click)="currentStep() === 'review' ? confirmOrder() : nextStep()"
           [disabled]="isProcessing() || (isSubmitted() && hasErrors())">
           <span *ngIf="isProcessing()" class="material-symbols-outlined animate-spin">progress_activity</span>
-          {{ isProcessing() ? 'Placing Order...' : 'Place Order' }}
-          <span *ngIf="!isProcessing()" class="material-symbols-outlined">arrow_forward</span>
+          {{ isProcessing() ? 'Placing Order...' : (currentStep() === 'review' ? 'Place Order' : 'Next Step') }}
+          <span *ngIf="!isProcessing()" class="material-symbols-outlined">
+            {{ currentStep() === 'review' ? 'check_circle' : 'arrow_forward' }}
+          </span>
         </button>
 
         <p class="secure-tag">

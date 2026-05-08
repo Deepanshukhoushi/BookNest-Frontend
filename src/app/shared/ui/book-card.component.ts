@@ -1,4 +1,4 @@
-import { Component, input, inject, output } from '@angular/core';
+import { Component, input, inject, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CartService } from '../../core/services/cart.service';
 import { WishlistService } from '../../core/services/wishlist.service';
@@ -37,6 +37,7 @@ export class BookCardComponent {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
 
+  isAddingToCart = signal(false);
   fallbackImage = '/assets/images/book-fallback.svg';
 
   isNumber(val: any): boolean {
@@ -46,11 +47,16 @@ export class BookCardComponent {
   // Sends a request to the cart service to add the specific book to the shopping cart
   addToCart(event: Event) {
     event.stopPropagation();
+    if (this.isAddingToCart()) return;
+
+    this.isAddingToCart.set(true);
     this.cartService.addToCart(this.bookId()).subscribe({
       next: () => {
+        this.isAddingToCart.set(false);
         // Notification is now handled globally by ApiInterceptor
       },
       error: () => {
+        this.isAddingToCart.set(false);
         this.notificationService.error('Failed to add book to cart.');
       }
     });
@@ -103,14 +109,11 @@ export class BookCardComponent {
       return this.fallbackImage;
     }
 
-    if (url.startsWith('/uploads')) {
-      return this.authService.resolveImageUrl(url) || this.fallbackImage;
+    if (url.startsWith('http') || url.startsWith('/assets/') || url.startsWith('data:')) {
+      return url;
     }
 
-    if (!url.startsWith('http') && !url.startsWith('/assets/') && !url.startsWith('data:')) {
-      return this.fallbackImage;
-    }
-    return url;
+    return this.authService.resolveImageUrl(url) || this.fallbackImage;
   }
 
   onImageError(event: any) {

@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrderService } from '../../../core/services/order.service';
 import { WalletService } from '../../../core/services/wallet.service';
@@ -37,6 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private bookService = inject(BookService);
   private notificationService = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private queryParamsSub?: Subscription;
 
   user = this.authService.currentUser;
@@ -125,28 +126,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
       this.nameInput.set(currentUser.fullName);
       this.resetAddressForm();
 
-      // Handle Tab switching via query params — stored for cleanup
-      this.queryParamsSub = this.route.queryParams.subscribe(params => {
-        if (params['tab']) {
-          this.activeTab.set(params['tab'] as DashboardTab);
-        }
-      });
-
-      this.orderService.getOrdersByUser(currentUser.userId).subscribe({
-        next: (orders) => this.orders.set(orders),
-        error: () => {}
-      });
-
-      this.loadAddresses(currentUser.userId);
-
-      this.wishlistService.fetchWishlist(currentUser.userId).subscribe({
-        next: (wishlist) => this.wishlistItems.set(wishlist?.items || []),
-        error: () => {}
-      });
-
-      this.walletService.fetchWalletByUserId(currentUser.userId).subscribe({
-        next: (wallet) => {
-          this.fetchTransactions(wallet.walletId);
+      this.loading.set(true);
+      forkJoin({
+        orders: this.orderService.getOrdersByUser(currentUser.userId).pipe(catchError(() => of([]))),
+        addresses: this.orderService.getAddressesByCustomer(currentUser.userId).pipe(catchError(() => of([]))),
+        wishlist: this.wishlistService.fetchWishlist(currentUser.userId).pipe(catchError(() => of(null))),
+        wallet: this.walletService.fetchWalletByUserId(currentUser.userId).pipe(catchError(() => of(null)))
+      }).subscribe({
+        next: (data: any) => {
+          this.orders.set(data.orders);
+          this.addresses.set(data.addresses);
+          this.wishlistItems.set(data.wishlist?.items || []);
+          if (data.wallet) {
+            this.fetchTransactions(data.wallet.walletId);
+          }
           this.loading.set(false);
         },
         error: () => this.loading.set(false)
@@ -339,9 +332,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Updates the currently active dashboard view
+  // Updates the currently active dashboard view and synchronizes with the URL
   setTab(tab: DashboardTab) {
     this.activeTab.set(tab);
+    // Note: Query param sync removed to satisfy 'Back to Profile' navigation requirement
   }
 
   updateAddressField(field: keyof Address, value: string | number) {

@@ -2,13 +2,14 @@ import { Component, ChangeDetectionStrategy, computed, inject, OnInit, signal, e
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { forkJoin, catchError, of } from 'rxjs';
 import { LogoComponent } from '../../../shared/ui/logo/logo.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookService } from '../../../core/services/book.service';
 import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { Book, Order, OrderStatus, Review, ReviewStatus, User } from '../../../shared/models/models';
+import { ConfirmModalComponent } from '../../../shared/ui/confirm-modal.component';
 import { environment } from '../../../../environments/environment';
 
 /**
@@ -19,7 +20,7 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, LogoComponent, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, LogoComponent, RouterModule, ReactiveFormsModule, ConfirmModalComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -45,6 +46,16 @@ export class AdminDashboardComponent implements OnInit {
 
   showBookModal = signal(false);
   editingBookId = signal<number | null>(null);
+
+  // Confirm Modal State
+  showConfirmModal = signal(false);
+  confirmModalConfig = signal({
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    isDestructive: false,
+    action: () => {}
+  });
 
   // --- Core Data Signals ---
   /** Full inventory of books currently in the library */
@@ -272,13 +283,13 @@ export class AdminDashboardComponent implements OnInit {
   refreshDashboardData() {
     this.loading.set(true);
     forkJoin({
-      books: this.bookService.getBooks(0, 1000),
-      orders: this.orderService.getAllOrders(),
-      users: this.authService.getAllUsers(),
-      reviews: this.reviewService.getAllReviews(),
-      reviewCounts: this.reviewService.getStatusCounts()
+      books: this.bookService.getBooks(0, 1000).pipe(catchError(() => of({ content: [] }))),
+      orders: this.orderService.getAllOrders().pipe(catchError(() => of([]))),
+      users: this.authService.getAllUsers().pipe(catchError(() => of([]))),
+      reviews: this.reviewService.getAllReviews().pipe(catchError(() => of([]))),
+      reviewCounts: this.reviewService.getStatusCounts().pipe(catchError(() => of({ PENDING: 0, APPROVED: 0, REJECTED: 0 })))
     }).subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.inventory.set(data.books.content);
         this.allOrders.set(data.orders);
         const sortedUsers = [...data.users].sort((a, b) => {
@@ -293,7 +304,7 @@ export class AdminDashboardComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.actionError.set('Failed to synchronize dashboard archives.');
+        this.actionError.set('Failed to synchronize dashboard archives completely.');
       }
     });
   }
@@ -464,24 +475,29 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
   }
 
   deleteUser(user: User) {
-    if (!confirm(`Delete ${user.fullName}? This action cannot be undone.`)) {
-      return;
-    }
-
-    this.actionLoading.set(true);
-    this.authService.deleteUser(user.userId).subscribe({
-      next: () => {
-        this.allUsers.set(this.allUsers().filter(entry => entry.userId !== user.userId));
-        this.actionLoading.set(false);
-        this.actionMessage.set(`${user.fullName} deleted successfully.`);
-        setTimeout(() => this.actionMessage.set(''), 3000);
-      },
-      error: () => {
-        this.actionLoading.set(false);
-        this.actionError.set('Failed to delete user.');
-        setTimeout(() => this.actionError.set(''), 3000);
+    this.confirmModalConfig.set({
+      title: 'Delete User Account',
+      message: `Are you sure you want to delete ${user.fullName}? This action is irreversible and will remove all their associated data from the archives.`,
+      confirmText: 'Delete Account',
+      isDestructive: true,
+      action: () => {
+        this.actionLoading.set(true);
+        this.authService.deleteUser(user.userId).subscribe({
+          next: () => {
+            this.allUsers.set(this.allUsers().filter(entry => entry.userId !== user.userId));
+            this.actionLoading.set(false);
+            this.actionMessage.set(`${user.fullName} deleted successfully.`);
+            setTimeout(() => this.actionMessage.set(''), 3000);
+          },
+          error: () => {
+            this.actionLoading.set(false);
+            this.actionError.set('Failed to delete user.');
+            setTimeout(() => this.actionError.set(''), 3000);
+          }
+        });
       }
     });
+    this.showConfirmModal.set(true);
   }
 
   removeReview(reviewId: number) {
@@ -644,30 +660,41 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
   }
 
   deleteBook(id: number) {
-    if (!confirm('Are you sure you want to remove this volume from the archives?')) {
-      return;
-    }
-
-    this.actionLoading.set(true);
-    this.bookService.deleteBook(id).subscribe({
-      next: () => {
-        this.actionLoading.set(false);
-        this.actionMessage.set('Volume removed from archives.');
-        this.refreshDashboardData();
-      },
-      error: () => {
-        this.actionLoading.set(false);
-        this.actionError.set('Failed to remove volume.');
+    const book = this.inventory().find(b => b.bookId === id);
+    this.confirmModalConfig.set({
+      title: 'Remove Volume',
+      message: `Are you sure you want to remove "${book?.title}" from the archives? This will permanently delete the edition and all associated metadata.`,
+      confirmText: 'Remove Volume',
+      isDestructive: true,
+      action: () => {
+        this.actionLoading.set(true);
+        this.bookService.deleteBook(id).subscribe({
+          next: () => {
+            this.actionLoading.set(false);
+            this.actionMessage.set('Volume removed from archives.');
+            this.refreshDashboardData();
+            setTimeout(() => this.actionMessage.set(''), 3000);
+          },
+          error: () => {
+            this.actionLoading.set(false);
+            this.actionError.set('Failed to remove volume.');
+            setTimeout(() => this.actionError.set(''), 3000);
+          }
+        });
       }
     });
+    this.showConfirmModal.set(true);
   }
 
   getSafeImageUrl(url: string | undefined): string {
     const fallback = '/assets/images/book-fallback.svg';
-    if (!url || (!url.startsWith('http') && !url.startsWith('/assets/') && !url.startsWith('data:'))) {
-      return fallback;
+    if (!url) return fallback;
+    
+    if (url.startsWith('http') || url.startsWith('/assets/') || url.startsWith('data:')) {
+      return url;
     }
-    return url;
+    
+    return this.authService.resolveImageUrl(url) || fallback;
   }
 
   onImageError(event: Event) {
@@ -676,13 +703,22 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
 
 
 
-  setView(view: string) {
-    this.activeView.set(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  onConfirmAction() {
+    this.showConfirmModal.set(false);
+    this.confirmModalConfig().action();
   }
 
   logout() {
-    this.authService.logout();
-    this.router.navigate(['/auth']);
+    this.confirmModalConfig.set({
+      title: 'Exit Curator Vault',
+      message: 'Are you sure you want to terminate your administrative session?',
+      confirmText: 'Exit Vault',
+      isDestructive: true,
+      action: () => {
+        this.authService.logout();
+        this.router.navigate(['/auth']);
+      }
+    });
+    this.showConfirmModal.set(true);
   }
 }

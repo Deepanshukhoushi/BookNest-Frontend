@@ -7,8 +7,10 @@
     
     <!-- Quick Actions Overlay -->
     <div class="card-actions">
-      <button class="action-btn" (click)="addToCart($event)" title="Add to Cart" [disabled]="stock() <= 0" [class.disabled]="stock() <= 0">
-        <span class="material-symbols-outlined">shopping_cart</span>
+      <button class="action-btn" (click)="addToCart($event)" [title]="isAddingToCart() ? 'Adding...' : 'Add to Cart'" [disabled]="stock() <= 0 || isAddingToCart()" [class.disabled]="stock() <= 0">
+        <span class="material-symbols-outlined" [class.spinning]="isAddingToCart()">
+          {{ isAddingToCart() ? 'progress_activity' : 'shopping_cart' }}
+        </span>
       </button>
       <button class="action-btn" (click)="addToWishlist($event)" title="Add to Wishlist" *ngIf="!isWishlist()">
         <span class="material-symbols-outlined">favorite</span>

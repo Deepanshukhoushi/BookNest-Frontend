@@ -27,7 +27,8 @@ describe('BookListingsComponent', () => {
       searchBooks: vi.fn().mockReturnValue(of(mockBookResponse))
     };
     searchServiceSpy = {
-      searchTerm: signal('')
+      searchTerm: signal(''),
+      clearSearch: vi.fn()
     };
 
     await TestBed.configureTestingModule({

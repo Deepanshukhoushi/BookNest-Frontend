@@ -99,8 +99,12 @@ export class AuthComponent implements OnInit {
         this.error.set('Passwords do not match. Please try again.');
         return;
       }
-      if (this.authData.mobile && !/^[0-9]{10}$/.test(this.authData.mobile)) {
-        this.error.set('Mobile number must be exactly 10 digits.');
+      if (!this.authData.email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.authData.email)) {
+        this.error.set('Please enter a valid email address.');
+        return;
+      }
+      if (this.authData.mobile && !/^[6-9][0-9]{9}$/.test(this.authData.mobile)) {
+        this.error.set('Mobile number must be 10 digits and start with 6-9.');
         return;
       }
     }

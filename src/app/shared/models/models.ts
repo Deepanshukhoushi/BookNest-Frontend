@@ -50,7 +50,7 @@ export interface Address {
 }
 
 // Data structure representing a book in the catalog
-export type CheckoutPaymentMethod = 'WALLET' | 'ONLINE';
+export type CheckoutPaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
 
 export interface CheckoutPayload {
   userId: number;
