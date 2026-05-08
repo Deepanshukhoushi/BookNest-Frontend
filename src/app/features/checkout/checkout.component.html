@@ -1,308 +1,250 @@
 <main class="checkout-page">
-  <div class="checkout-actions">
-    <a routerLink="/" class="return-link">
-      <span class="material-symbols-outlined">arrow_back</span>
-      Return to Library
-<main class="checkout-page">
-  <div class="checkout-actions">
-    <a routerLink="/" class="return-link">
+  <header class="checkout-header">
+    <a routerLink="/" class="back-link">
       <span class="material-symbols-outlined">arrow_back</span>
       Return to Library
     </a>
-  </div>
-
-  <div class="checkout-main">
-    <!-- Left Column: Checkout Flow -->
-    <div class="checkout-flow">
-      <!-- Step Content -->
-      <div class="checkout-content">
-        <h1 class="checkout-section-title">Complete Your Acquisition</h1>
-        <p class="checkout-section-desc">Provide your shipping details and select a payment method to finalize your order.</p>
-
-        <!-- Shipping Address -->
-        <section class="review-card">
-          <div class="address-info">
-            <div class="info-icon">
-              <span class="material-symbols-outlined">local_shipping</span>
-            </div>
-            <div class="address-details">
-              <h3>Shipping Destination</h3>
-              <p class="checkout-section-desc" style="margin-top: 0.25rem;">Enter a delivery address before completing your purchase.</p>
-
-              <!-- Saved Addresses Quick Select -->
-              <div *ngIf="savedAddresses().length > 0" class="saved-addresses-selector">
-                <label class="selector-label">Shipping Profile</label>
-                <div class="address-chips">
-                  <!-- Add New Option -->
-                  <button 
-                    class="address-chip add-new"
-                    [class.active]="selectedAddressId() === null"
-                    (click)="addNewAddress()">
-                    <span class="material-symbols-outlined">add_location</span>
-                    <div class="chip-content">
-                      <span class="chip-name">New Address</span>
-                      <span class="chip-detail">Manual entry</span>
-                    </div>
-                  </button>
-
-                  <button 
-                    *ngFor="let addr of savedAddresses()" 
-                    class="address-chip"
-                    [class.active]="selectedAddressId() === addr.addressId"
-                    (click)="selectAddress(addr)">
-                    <span class="material-symbols-outlined">home</span>
-                    <div class="chip-content">
-                      <span class="chip-name">{{ addr.fullName }}</span>
-                      <span class="chip-detail">{{ addr.city }}, {{ addr.pincode }}</span>
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              <div class="address-form">
-                <div class="form-field-group">
-                  <label class="field" for="checkout-fullName" [class.error-field]="hasFieldError('fullName')">
-                    <span>Full name</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-fullName" [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" name="fullName" type="text" placeholder="Full name" [class.invalid]="hasFieldError('fullName')" />
-                      <span *ngIf="hasFieldError('fullName')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('fullName')" class="error-msg">❌ {{ addressErrors()['fullName'] }}</span>
-                  </label>
-                </div>
-
-                <div class="form-field-group">
-                  <label class="field" for="checkout-phone" [class.error-field]="hasFieldError('phone')">
-                    <span>Phone</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-phone" [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" [class.invalid]="hasFieldError('phone')" />
-                      <span *ngIf="hasFieldError('phone')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('phone')" class="error-msg">❌ {{ addressErrors()['phone'] }}</span>
-                  </label>
-                </div>
-
-                <div class="form-field-group field-wide">
-                  <label class="field" for="checkout-street" [class.error-field]="hasFieldError('street')">
-                    <span>Street</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-street" [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" name="street" type="text" placeholder="Flat/House no, Street" [class.invalid]="hasFieldError('street')" />
-                      <span *ngIf="hasFieldError('street')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('street')" class="error-msg">❌ {{ addressErrors()['street'] }}</span>
-                  </label>
-                </div>
-
-                <div class="form-field-group">
-                  <label class="field" for="checkout-city" [class.error-field]="hasFieldError('city')">
-                    <span>City</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-city" [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" name="city" type="text" placeholder="City" [class.invalid]="hasFieldError('city')" />
-                      <span *ngIf="hasFieldError('city')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('city')" class="error-msg">❌ {{ addressErrors()['city'] }}</span>
-                  </label>
-                </div>
-
-                <div class="form-field-group">
-                  <label class="field" for="checkout-state" [class.error-field]="hasFieldError('state')">
-                    <span>State</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-state" [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" name="state" type="text" placeholder="State" [class.invalid]="hasFieldError('state')" />
-                      <span *ngIf="hasFieldError('state')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('state')" class="error-msg">❌ {{ addressErrors()['state'] }}</span>
-                  </label>
-                </div>
-
-                <div class="form-field-group">
-                  <label class="field" for="checkout-pincode" [class.error-field]="hasFieldError('pincode')">
-                    <span>Pincode</span>
-                    <div class="input-wrapper">
-                      <input id="checkout-pincode" [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" [class.invalid]="hasFieldError('pincode')" />
-                      <span *ngIf="hasFieldError('pincode')" class="error-icon-field">❌</span>
-                    </div>
-                    <span *ngIf="hasFieldError('pincode')" class="error-msg">❌ {{ addressErrors()['pincode'] }}</span>
-                  </label>
-                </div>
-              </div>
-
-              <div *ngIf="message()" class="inline-message" [class.error]="messageType() === 'error'" [class.success]="messageType() === 'success'">
-                {{ message() }}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Payment Method Selection -->
-        <section>
-          <h2 class="checkout-section-title" style="font-size: 1.875rem; border-bottom: 2px solid var(--surface-container-highest); display: inline-block; padding-bottom: 0.5rem; margin-bottom: 2rem;">Payment Method</h2>
-          
-          <div class="payment-grid">
-            <!-- Cash on Delivery -->
-            <label class="payment-option">
-              <input
-                type="radio"
-                id="payment-cod"
-                name="payment"
-                style="display: none;"
-                [checked]="paymentMethod() === 'COD'"
-                (change)="paymentMethod.set('COD')">
-              <div class="payment-option-card">
-                <div class="option-header">
-                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
-                    <span class="material-symbols-outlined">payments</span>
-                  </div>
-                  <div class="radio-circle">
-                    <div class="radio-inner"></div>
-                  </div>
-                </div>
-                <div class="option-title">Cash on Delivery</div>
-                <p class="option-desc">Pay upon arrival. Fast and reliable fulfillment.</p>
-              </div>
-            </label>
-
-            <!-- Wallet Payment -->
-            <label class="payment-option">
-              <input
-                type="radio"
-                id="payment-wallet"
-                name="payment"
-                style="display: none;"
-                [checked]="paymentMethod() === 'WALLET'"
-                (change)="paymentMethod.set('WALLET')">
-              <div class="payment-option-card">
-                <div class="option-header">
-                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
-                    <span class="material-symbols-outlined">account_balance_wallet</span>
-                  </div>
-                  <div class="radio-circle">
-                    <div class="radio-inner"></div>
-                  </div>
-                </div>
-                <div class="option-title">BookNest Wallet</div>
-                <p class="option-desc">Utilize your curated funds for a seamless acquisition experience.</p>
-              </div>
-            </label>
-
-            <label class="payment-option">
-              <input
-                type="radio"
-                id="payment-online"
-                name="payment"
-                style="display: none;"
-                [checked]="paymentMethod() === 'ONLINE'"
-                (change)="paymentMethod.set('ONLINE')">
-              <div class="payment-option-card">
-                <div class="option-header">
-                  <div class="info-icon" style="background-color: var(--surface-container-low); width: 2.5rem; height: 2.5rem;">
-                    <span class="material-symbols-outlined">credit_card</span>
-                  </div>
-                  <div class="radio-circle">
-                    <div class="radio-inner"></div>
-                  </div>
-                </div>
-                <div class="option-title">Online Payment</div>
-                <p class="option-desc">Simulated payment flow for now. Fast, seamless checkout.</p>
-              </div>
-            </label>
-          </div>
-        </section>
-      </div>
+    <div class="header-main">
+      <h1>Finalize Acquisition</h1>
+      <p>Securely complete your curated order</p>
     </div>
+  </header>
 
-    <!-- Right Column: Order Summary -->
-    <aside class="order-summary-side">
-      <div class="summary-container">
-        <h2 class="summary-title">Order Summary</h2>
-        
-        <div class="item-list">
-          <div class="summary-item" *ngFor="let item of checkoutItems()">
-            <div class="item-image">
-              <img loading="lazy" [src]="item.imageUrl" [alt]="item.title">
-            </div>
-            <div class="item-details">
-              <div>
-                <span class="item-tag">{{ item.edition }}</span>
-                <h4>{{ item.title }}</h4>
-                <p class="item-author">{{ item.author }}</p>
-              </div>
-              <div class="item-meta">
-                <span class="item-author">Qty: {{ item.quantity }}</span>
-                <span class="item-price">{{ (item.price * item.quantity) | currency }}</span>
-              </div>
-            </div>
+  <div class="checkout-grid">
+    <!-- Left Column: Details -->
+    <div class="details-column">
+      <!-- Shipping Section -->
+      <section class="checkout-card">
+        <div class="card-header">
+          <span class="material-symbols-outlined icon">local_shipping</span>
+          <div class="header-text">
+            <h2>Shipping Destination</h2>
+            <p>Where should we deliver your editions?</p>
           </div>
         </div>
 
-        <div class="calculation">
-          <div class="calc-row" style="display: block;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
-              <span>Apply Coupon</span>
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
-                <input
-                  type="text"
-                  [ngModel]="couponCode()"
-                  (ngModelChange)="couponCode.set($event); couponError.set('')"
-                  placeholder="Enter code"
-                  style="min-width: 140px; padding: 0.75rem 0.875rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: var(--surface); color: var(--on-surface);"
-                />
-                @if (appliedCoupon()) {
-                  <button type="button" (click)="removeCoupon()" style="padding: 0.75rem 1rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: transparent; color: var(--on-surface); cursor: pointer;">
-                    Remove
-                  </button>
-                } @else {
-                  <button type="button" (click)="applyCoupon()" [disabled]="couponLoading()" style="padding: 0.75rem 1rem; border-radius: 999px; border: none; background: var(--color-primary); color: white; cursor: pointer;">
-                    {{ couponLoading() ? 'Applying...' : 'Apply' }}
-                  </button>
-                }
+        <!-- Address Selection Chips -->
+        <div class="selection-row" *ngIf="savedAddresses().length > 0">
+          <button 
+            class="selection-chip"
+            [class.active]="selectedAddressId() === null"
+            (click)="addNewAddress()">
+            <span class="material-symbols-outlined">add_location</span>
+            <div class="chip-info">
+              <strong>New Address</strong>
+              <span>Manual entry</span>
+            </div>
+          </button>
+
+          <button 
+            *ngFor="let addr of savedAddresses()" 
+            class="selection-chip"
+            [class.active]="selectedAddressId() === addr.addressId"
+            (click)="selectAddress(addr)">
+            <span class="material-symbols-outlined">home</span>
+            <div class="chip-info">
+              <strong>{{ addr.fullName }}</strong>
+              <span>{{ addr.city }}, {{ addr.pincode }}</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- Active Address Card (ReadOnly) -->
+        <div class="active-address-card" *ngIf="selectedAddressId() !== null">
+          <div class="address-content">
+            <div class="detail-row">
+              <span class="label">Recipient:</span>
+              <strong>{{ addressForm.fullName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="label">Phone:</span>
+              <span>+91 {{ addressForm.phone }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Address:</span>
+              <span>{{ addressForm.street }}, {{ addressForm.city }}, {{ addressForm.state }} - {{ addressForm.pincode }}</span>
+            </div>
+          </div>
+          <button class="edit-link" (click)="addNewAddress()">
+            <span class="material-symbols-outlined">edit</span>
+            Change
+          </button>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <div class="manual-form" *ngIf="selectedAddressId() === null">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <div class="input-box" [class.invalid]="hasFieldError('fullName')">
+                <input [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" type="text" placeholder="Your full name">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('fullName')">{{ addressErrors()['fullName'] }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Phone Number</label>
+              <div class="input-box" [class.invalid]="hasFieldError('phone')">
+                <input [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" type="tel" placeholder="10-digit mobile" maxlength="10">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('phone')">{{ addressErrors()['phone'] }}</span>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Street Address</label>
+              <div class="input-box" [class.invalid]="hasFieldError('street')">
+                <input [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" type="text" placeholder="Flat, Street, Landmark">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('street')">{{ addressErrors()['street'] }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>City</label>
+              <div class="input-box" [class.invalid]="hasFieldError('city')">
+                <input [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" type="text" placeholder="City">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('city')">{{ addressErrors()['city'] }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>State</label>
+              <div class="input-box" [class.invalid]="hasFieldError('state')">
+                <input [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" type="text" placeholder="State">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('state')">{{ addressErrors()['state'] }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>Pincode</label>
+              <div class="input-box" [class.invalid]="hasFieldError('pincode')">
+                <input [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" type="text" placeholder="6 digits" maxlength="6">
+              </div>
+              <span class="error-text" *ngIf="hasFieldError('pincode')">{{ addressErrors()['pincode'] }}</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Payment Section -->
+      <section class="checkout-card">
+        <div class="card-header">
+          <span class="material-symbols-outlined icon">payments</span>
+          <div class="header-text">
+            <h2>Payment Method</h2>
+            <p>Select your preferred acquisition channel</p>
+          </div>
+        </div>
+
+        <div class="payment-selection-grid">
+          <label class="payment-method-card" [class.active]="paymentMethod() === 'WALLET'">
+            <input type="radio" name="pay" (change)="paymentMethod.set('WALLET')" [checked]="paymentMethod() === 'WALLET'">
+            <div class="method-content">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+              <div class="method-info">
+                <strong>BookNest Wallet</strong>
+                <span>Instant & secured</span>
               </div>
             </div>
-            @if (couponError()) {
-              <p style="margin: 0.5rem 0 0; color: #b42318; font-size: 0.85rem; text-align: right;">{{ couponError() }}</p>
-            }
+            <div class="radio-indicator"></div>
+          </label>
+
+          <label class="payment-method-card" [class.active]="paymentMethod() === 'ONLINE'">
+            <input type="radio" name="pay" (change)="paymentMethod.set('ONLINE')" [checked]="paymentMethod() === 'ONLINE'">
+            <div class="method-content">
+              <span class="material-symbols-outlined">credit_card</span>
+              <div class="method-info">
+                <strong>Online Payment</strong>
+                <span>Cards, UPI, Netbanking</span>
+              </div>
+            </div>
+            <div class="radio-indicator"></div>
+          </label>
+
+          <label class="payment-method-card" [class.active]="paymentMethod() === 'COD'">
+            <input type="radio" name="pay" (change)="paymentMethod.set('COD')" [checked]="paymentMethod() === 'COD'">
+            <div class="method-content">
+              <span class="material-symbols-outlined">local_atm</span>
+              <div class="method-info">
+                <strong>Cash on Delivery</strong>
+                <span>Pay upon arrival</span>
+              </div>
+            </div>
+            <div class="radio-indicator"></div>
+          </label>
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column: Summary -->
+    <aside class="summary-column">
+      <div class="summary-sticky-card">
+        <h3>Order Summary</h3>
+        
+        <div class="items-preview">
+          <div class="preview-item" *ngFor="let item of checkoutItems()">
+            <img [src]="item.imageUrl" [alt]="item.title">
+            <div class="item-info">
+              <strong>{{ item.title }}</strong>
+              <span>Qty: {{ item.quantity }}</span>
+            </div>
+            <span class="item-price">{{ (item.price * item.quantity) | currency }}</span>
           </div>
-          <div class="calc-row">
+        </div>
+
+        <div class="coupon-section">
+          <div class="coupon-input-group">
+            <input 
+              type="text" 
+              [ngModel]="couponCode()" 
+              (ngModelChange)="couponCode.set($event); couponError.set('')" 
+              placeholder="Promo code">
+            <button 
+              type="button" 
+              (click)="appliedCoupon() ? removeCoupon() : applyCoupon()" 
+              [disabled]="couponLoading()">
+              {{ appliedCoupon() ? 'Remove' : 'Apply' }}
+            </button>
+          </div>
+          <p class="coupon-msg error" *ngIf="couponError()">{{ couponError() }}</p>
+          <p class="coupon-msg success" *ngIf="appliedCoupon()">Coupon applied successfully!</p>
+        </div>
+
+        <div class="price-breakdown">
+          <div class="price-row">
             <span>Subtotal</span>
             <span>{{ subtotal() | currency }}</span>
           </div>
-          <div class="calc-row">
-            <span>Curated Shipping</span>
-            <span [class.free-shipping]="isFreeShipping()">
-              {{ isFreeShipping() ? 'Complimentary' : (shipping() | currency) }}
-            </span>
+          <div class="price-row">
+            <span>Shipping</span>
+            <span [class.free]="isFreeShipping()">{{ isFreeShipping() ? 'FREE' : (shipping() | currency) }}</span>
           </div>
-          <div class="calc-row">
-            <span>Estimated Tax</span>
+          <div class="price-row">
+            <span>GST (8%)</span>
             <span>{{ tax() | currency }}</span>
           </div>
-          @if (appliedCoupon()) {
-            <div class="calc-row">
-              <span>Discount</span>
-              <span style="color: var(--color-primary);">-{{ appliedCoupon()!.discountAmount | currency }}</span>
-            </div>
-          }
-          <div class="total-row">
-            <span class="total-label">Total</span>
-            <span class="total-amount">{{ total() | currency }}</span>
+          <div class="price-row discount" *ngIf="appliedCoupon()">
+            <span>Discount</span>
+            <span>-{{ appliedCoupon()!.discountAmount | currency }}</span>
+          </div>
+          <div class="price-total">
+            <span>Total</span>
+            <strong>{{ total() | currency }}</strong>
           </div>
         </div>
 
         <button 
-          class="complete-btn" 
+          class="place-order-btn" 
           (click)="confirmOrder()"
           [disabled]="isProcessing() || (isSubmitted() && hasErrors())">
-          <span *ngIf="isProcessing()" class="material-symbols-outlined animate-spin">progress_activity</span>
-          {{ isProcessing() ? 'Placing Order...' : 'Place Order' }}
-          <span *ngIf="!isProcessing()" class="material-symbols-outlined">
-            check_circle
-          </span>
+          <span *ngIf="isProcessing()" class="spinner material-symbols-outlined">progress_activity</span>
+          {{ isProcessing() ? 'Processing...' : 'Place Order' }}
+          <span *ngIf="!isProcessing()" class="material-symbols-outlined">arrow_forward</span>
         </button>
 
-        <p class="secure-tag">
-          <span class="material-symbols-outlined" style="font-size: 14px;">lock</span>
-          Secure transaction
-        </p>
+        <div class="security-note">
+          <span class="material-symbols-outlined">lock</span>
+          256-bit SSL Secure Checkout
+        </div>
       </div>
     </aside>
   </div>
