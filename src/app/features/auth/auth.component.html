@@ -34,28 +34,38 @@
 
         <form class="auth-form" (ngSubmit)="onSubmit()">
           <div class="floating-form-field">
-            <input id="loginEmail" type="email" name="email" [(ngModel)]="authData.email" placeholder=" " required
-              class="floating-input" [class.has-value]="authData.email">
+            <input id="loginEmail" type="email" name="email" [(ngModel)]="authData.email" #loginEmail="ngModel"
+              placeholder=" " required email class="floating-input" [class.has-value]="authData.email"
+              [class.input-invalid]="loginEmail.invalid && (loginEmail.dirty || loginEmail.touched)">
             <label class="floating-label" for="loginEmail">Email Address</label>
+            <div class="field-error" *ngIf="loginEmail.invalid && (loginEmail.dirty || loginEmail.touched)">
+              Please enter a valid email address
+            </div>
           </div>
 
           <div class="floating-form-field">
-            <input id="loginPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
-              [(ngModel)]="authData.password" placeholder=" " required
-              class="floating-input password-input" [class.has-value]="authData.password">
-            <label class="floating-label" for="loginPassword">Password</label>
-            <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
-              <span class="material-symbols-outlined">
-                {{ showPassword() ? 'visibility_off' : 'visibility' }}
-              </span>
-            </button>
+            <div class="password-field-shell">
+              <input id="loginPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
+                [(ngModel)]="authData.password" #loginPass="ngModel" placeholder=" " required minlength="6"
+                class="floating-input password-input" [class.has-value]="authData.password"
+                [class.input-invalid]="loginPass.invalid && (loginPass.dirty || loginPass.touched)">
+              <label class="floating-label" for="loginPassword">Password</label>
+              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                <span class="material-symbols-outlined">
+                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <div class="field-error" *ngIf="loginPass.invalid && (loginPass.dirty || loginPass.touched)">
+              Password must be at least 6 characters
+            </div>
           </div>
 
           <div class="forgot-password-row">
             <button type="button" class="forgot-link" (click)="setMode('forgot')">Forgot password?</button>
           </div>
 
-          <button type="submit" class="submit-btn" [disabled]="loading() || !authData.email.trim() || !authData.password.trim()">
+          <button type="submit" class="submit-btn" [disabled]="loading() || loginEmail.invalid || loginPass.invalid">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             {{ loading() ? 'Authenticating...' : 'Log In' }}
           </button>
@@ -84,47 +94,71 @@
 
         <form class="auth-form" (ngSubmit)="onSubmit()">
           <div class="floating-form-field">
-            <input id="regFullName" type="text" name="fullName" [(ngModel)]="authData.fullName" placeholder=" "
-              required class="floating-input" [class.has-value]="authData.fullName">
+            <input id="regFullName" type="text" name="fullName" [(ngModel)]="authData.fullName" #regName="ngModel"
+              placeholder=" " required pattern="^[a-zA-Z\s]{2,}$" class="floating-input" [class.has-value]="authData.fullName"
+              [class.input-invalid]="regName.invalid && (regName.dirty || regName.touched)">
             <label class="floating-label" for="regFullName">Full Name</label>
+            <div class="field-error" *ngIf="regName.invalid && (regName.dirty || regName.touched)">
+              Name should be at least 2 letters (no numbers)
+            </div>
           </div>
 
           <div class="floating-form-field">
-            <input id="regEmail" type="email" name="email" [(ngModel)]="authData.email" placeholder=" " required
-              class="floating-input" [class.has-value]="authData.email">
+            <input id="regEmail" type="email" name="email" [(ngModel)]="authData.email" #regEmail="ngModel"
+              placeholder=" " required email class="floating-input" [class.has-value]="authData.email"
+              [class.input-invalid]="regEmail.invalid && (regEmail.dirty || regEmail.touched)">
             <label class="floating-label" for="regEmail">Email Address</label>
+            <div class="field-error" *ngIf="regEmail.invalid && (regEmail.dirty || regEmail.touched)">
+              Please enter a valid email address
+            </div>
           </div>
 
           <div class="floating-form-field">
-            <input id="regMobile" type="tel" name="mobile" [(ngModel)]="authData.mobile" placeholder=" " required
-              class="floating-input" pattern="[0-9]{10}" maxlength="10" [class.has-value]="authData.mobile">
+            <input id="regMobile" type="tel" name="mobile" [(ngModel)]="authData.mobile" #regMobile="ngModel"
+              placeholder=" " required pattern="[0-9]{10}" maxlength="10" inputmode="numeric" 
+              class="floating-input" [class.has-value]="authData.mobile"
+              [class.input-invalid]="regMobile.invalid && (regMobile.dirty || regMobile.touched)">
             <label class="floating-label" for="regMobile">Mobile Number</label>
+            <div class="field-error" *ngIf="regMobile.invalid && (regMobile.dirty || regMobile.touched)">
+              Please enter a valid 10-digit mobile number
+            </div>
           </div>
 
 
           <div class="form-row">
             <div class="floating-form-field">
-              <input id="regPassword" [type]="showPassword() ? 'text' : 'password'" name="password" [(ngModel)]="authData.password" placeholder=" "
-                required class="floating-input password-input" [class.has-value]="authData.password">
-              <label class="floating-label" for="regPassword">Password</label>
-              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
-                <span class="material-symbols-outlined">
-                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
-                </span>
-              </button>
+              <div class="password-field-shell">
+                <input id="regPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
+                  [(ngModel)]="authData.password" #regPass="ngModel" placeholder=" "
+                  required minlength="8" class="floating-input password-input" [class.has-value]="authData.password"
+                  [class.input-invalid]="regPass.invalid && (regPass.dirty || regPass.touched)">
+                <label class="floating-label" for="regPassword">Password</label>
+                <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                  <span class="material-symbols-outlined">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
+              <div class="field-error" *ngIf="regPass.invalid && (regPass.dirty || regPass.touched)">
+                At least 8 characters
+              </div>
             </div>
             <div class="floating-form-field">
-              <input id="regConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="authData.confirmPassword"
-                placeholder=" " required class="floating-input password-input"
-                [class.input-mismatch]="authData.confirmPassword && authData.password !== authData.confirmPassword"
-                [class.input-match]="authData.confirmPassword && authData.password === authData.confirmPassword"
-                [class.has-value]="authData.confirmPassword">
-              <label class="floating-label" for="regConfirmPassword">Confirm</label>
-              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
-                <span class="material-symbols-outlined">
-                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
-                </span>
-              </button>
+              <div class="password-field-shell">
+                <input id="regConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" 
+                  [(ngModel)]="authData.confirmPassword" #regConfirm="ngModel"
+                  placeholder=" " required class="floating-input password-input"
+                  [class.input-mismatch]="authData.confirmPassword && authData.password !== authData.confirmPassword"
+                  [class.input-match]="authData.confirmPassword && authData.password === authData.confirmPassword"
+                  [class.has-value]="authData.confirmPassword"
+                  [class.input-invalid]="regConfirm.invalid && (regConfirm.dirty || regConfirm.touched)">
+                <label class="floating-label" for="regConfirmPassword">Confirm</label>
+                <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                  <span class="material-symbols-outlined">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
           <span class="password-hint"
@@ -133,7 +167,7 @@
           </span>
 
           <button type="submit" class="submit-btn"
-            [disabled]="loading() || (authData.confirmPassword && authData.password !== authData.confirmPassword)">
+            [disabled]="loading() || regName.invalid || regEmail.invalid || regMobile.invalid || regPass.invalid || regConfirm.invalid || (authData.password !== authData.confirmPassword)">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             {{ loading() ? 'Creating Account...' : 'Create account' }}
           </button>
@@ -162,12 +196,16 @@
 
         <form class="auth-form" (ngSubmit)="onSendOtp()">
           <div class="floating-form-field">
-            <input id="forgotEmail" type="email" name="email" [(ngModel)]="resetData.email" placeholder=" " required
-              class="floating-input" [class.has-value]="resetData.email">
+            <input id="forgotEmail" type="email" name="email" [(ngModel)]="resetData.email" #forgotEmail="ngModel"
+              placeholder=" " required email class="floating-input" [class.has-value]="resetData.email"
+              [class.input-invalid]="forgotEmail.invalid && (forgotEmail.dirty || forgotEmail.touched)">
             <label class="floating-label" for="forgotEmail">Email Address</label>
+            <div class="field-error" *ngIf="forgotEmail.invalid && (forgotEmail.dirty || forgotEmail.touched)">
+              Please enter a valid email address
+            </div>
           </div>
 
-          <button type="submit" class="submit-btn" [disabled]="loading() || !resetData.email.trim()">
+          <button type="submit" class="submit-btn" [disabled]="loading() || forgotEmail.invalid">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             Send Recovery Code
           </button>
@@ -184,39 +222,56 @@
 
         <form class="auth-form" (ngSubmit)="onResetPassword()">
           <div class="floating-form-field">
-            <input id="resetOtp" type="text" name="otp" [(ngModel)]="resetData.otp" placeholder=" " required
-              class="floating-input" maxlength="6" pattern="[0-9]{6}" inputmode="numeric" [class.has-value]="resetData.otp">
+            <input id="resetOtp" type="text" name="otp" [(ngModel)]="resetData.otp" #resetOtp="ngModel"
+              placeholder=" " required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" 
+              class="floating-input" [class.has-value]="resetData.otp"
+              [class.input-invalid]="resetOtp.invalid && (resetOtp.dirty || resetOtp.touched)">
             <label class="floating-label" for="resetOtp">Verification Code (OTP)</label>
+            <div class="field-error" *ngIf="resetOtp.invalid && (resetOtp.dirty || resetOtp.touched)">
+              Enter the 6-digit code
+            </div>
           </div>
 
           <div class="form-row">
             <div class="floating-form-field">
-              <input id="resetNewPassword" [type]="showPassword() ? 'text' : 'password'" name="newPassword" [(ngModel)]="resetData.newPassword"
-                placeholder=" " required class="floating-input password-input" [class.has-value]="resetData.newPassword">
-              <label class="floating-label" for="resetNewPassword">New Password</label>
-              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
-                <span class="material-symbols-outlined">
-                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
-                </span>
-              </button>
+              <div class="password-field-shell">
+                <input id="resetNewPassword" [type]="showPassword() ? 'text' : 'password'" name="newPassword" 
+                  [(ngModel)]="resetData.newPassword" #resetPass="ngModel"
+                  placeholder=" " required minlength="8" class="floating-input password-input" 
+                  [class.has-value]="resetData.newPassword"
+                  [class.input-invalid]="resetPass.invalid && (resetPass.dirty || resetPass.touched)">
+                <label class="floating-label" for="resetNewPassword">New Password</label>
+                <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                  <span class="material-symbols-outlined">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
+              <div class="field-error" *ngIf="resetPass.invalid && (resetPass.dirty || resetPass.touched)">
+                At least 8 characters
+              </div>
             </div>
             <div class="floating-form-field">
-              <input id="resetConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="resetData.confirmPassword"
-                placeholder=" " required class="floating-input password-input"
-                [class.input-mismatch]="resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword"
-                [class.input-match]="resetData.confirmPassword && resetData.newPassword === resetData.confirmPassword"
-                [class.has-value]="resetData.confirmPassword">
-              <label class="floating-label" for="resetConfirmPassword">Confirm Password</label>
-              <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
-                <span class="material-symbols-outlined">
-                  {{ showPassword() ? 'visibility_off' : 'visibility' }}
-                </span>
-              </button>
+              <div class="password-field-shell">
+                <input id="resetConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" 
+                  [(ngModel)]="resetData.confirmPassword" #resetConfirm="ngModel"
+                  placeholder=" " required class="floating-input password-input"
+                  [class.input-mismatch]="resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword"
+                  [class.input-match]="resetData.confirmPassword && resetData.newPassword === resetData.confirmPassword"
+                  [class.has-value]="resetData.confirmPassword"
+                  [class.input-invalid]="resetConfirm.invalid && (resetConfirm.dirty || resetConfirm.touched)">
+                <label class="floating-label" for="resetConfirmPassword">Confirm Password</label>
+                <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
+                  <span class="material-symbols-outlined">
+                    {{ showPassword() ? 'visibility_off' : 'visibility' }}
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
 
           <button type="submit" class="submit-btn"
-            [disabled]="loading() || (resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword)">
+            [disabled]="loading() || resetOtp.invalid || resetPass.invalid || resetConfirm.invalid || (resetData.newPassword !== resetData.confirmPassword)">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             Update Password
           </button>

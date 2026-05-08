@@ -8,6 +8,8 @@ import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { environment } from '../../../environments/environment';
+import { CouponService } from '../../core/services/coupon.service';
+import { CouponValidateResponse } from '../../shared/models/models';
 
 type CheckoutStep = 'address' | 'payment' | 'review';
 type PaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
@@ -29,6 +31,7 @@ export class CheckoutComponent implements OnInit {
   private cartService = inject(CartService);
   private notificationService = inject(NotificationService);
   private router = inject(Router);
+  private readonly couponService = inject(CouponService);
 
   currentStep = signal<CheckoutStep>('address');
   isProcessing = signal(false);
@@ -52,6 +55,10 @@ export class CheckoutComponent implements OnInit {
   savedAddresses = signal<any[]>([]);
   isLoadingAddresses = signal(false);
   selectedAddressId = signal<number | null>(null);
+  couponCode = signal('');
+  appliedCoupon = signal<CouponValidateResponse | null>(null);
+  couponError = signal('');
+  couponLoading = signal(false);
 
   ngOnInit() {
     this.loadSavedAddresses();
@@ -123,7 +130,7 @@ export class CheckoutComponent implements OnInit {
   subtotal = computed(() => this.cartService.cart()?.totalPrice || 0);
   shipping = computed(() => this.subtotal() > this.SHIPPING_THRESHOLD ? 0 : this.BASE_SHIPPING);
   tax = computed(() => this.subtotal() * this.TAX_RATE);
-  total = computed(() => this.subtotal() + this.tax() + this.shipping());
+  total = computed(() => this.subtotal() + this.tax() + this.shipping() - (this.appliedCoupon()?.discountAmount ?? 0));
   isFreeShipping = computed(() => this.subtotal() > this.SHIPPING_THRESHOLD);
 
   // Advances to the next step in the checkout process after validation
@@ -222,6 +229,37 @@ export class CheckoutComponent implements OnInit {
     }
   }
 
+  applyCoupon() {
+    const code = this.couponCode().trim();
+    if (!code) {
+      this.couponError.set('Enter a coupon code to continue.');
+      this.appliedCoupon.set(null);
+      return;
+    }
+
+    this.couponLoading.set(true);
+    this.couponError.set('');
+
+    this.couponService.validateCoupon(code, this.subtotal()).subscribe({
+      next: (response) => {
+        this.appliedCoupon.set(response);
+        this.couponCode.set(response.code);
+        this.couponLoading.set(false);
+      },
+      error: (err) => {
+        this.appliedCoupon.set(null);
+        this.couponLoading.set(false);
+        this.couponError.set(err.error?.message || 'Unable to apply coupon.');
+      }
+    });
+  }
+
+  removeCoupon() {
+    this.couponCode.set('');
+    this.appliedCoupon.set(null);
+    this.couponError.set('');
+  }
+
   // Executes the order placement sequence for offline or wallet payments
   private executeOrderPlacement(userId: number) {
     this.isProcessing.set(true);
@@ -232,7 +270,8 @@ export class CheckoutComponent implements OnInit {
       return this.orderService.checkout({ 
         userId, 
         paymentMethod: method,
-        addressId: finalAddressId 
+        addressId: finalAddressId,
+        discountCode: this.appliedCoupon()?.code
       });
     };
 
@@ -262,16 +301,12 @@ export class CheckoutComponent implements OnInit {
     const addressId = this.selectedAddressId();
 
     const startPayment = (finalAddressId: number) => {
-       // Note: We currently don't pass addressId to initiatePayment in backend, 
-       // but we'll use it in verifyPayment if we wanted. 
-       // For now, the backend uses getLatestAddress in initiatePayment.
-       // To fix duplicates, NOT saving is the key.
-       return this.orderService.initiatePayment(userId);
+       return this.orderService.initiatePayment(userId, finalAddressId, this.appliedCoupon()?.code);
     };
 
     const paymentFlow$ = addressId
       ? startPayment(addressId)
-      : this.saveNewAddress(userId).pipe(switchMap(() => startPayment(0))); // 0 is dummy
+      : this.saveNewAddress(userId).pipe(switchMap(newAddress => startPayment(newAddress.addressId!)));
 
     paymentFlow$.pipe(
       switchMap(orderId => this.orderService.getRazorpayPublicKey().pipe(
@@ -310,30 +345,46 @@ export class CheckoutComponent implements OnInit {
       return;
     }
 
-    const options = {
-      key: keyId,
-      amount: Math.round(this.total() * 100),
-      currency: 'INR',
-      name: 'BookNest',
-      description: 'Acquiring Curated Editions',
-      order_id: orderId,
-      handler: (response: any) => {
-        this.verifyAndFinalizeOnlineOrder(userId, response);
-      },
-      prefill: {
-        name: this.addressForm.fullName,
-        contact: this.addressForm.phone
-      },
-      theme: {
-        color: '#012d1d'
-      },
-      modal: {
-        ondismiss: () => this.isProcessing.set(false)
-      }
-    };
+    this.loadRazorpayScript().then(() => {
+      const options = {
+        key: keyId,
+        amount: Math.round(this.total() * 100),
+        currency: 'INR',
+        name: 'BookNest',
+        description: 'Acquiring Curated Editions',
+        order_id: orderId,
+        handler: (response: any) => {
+          this.verifyAndFinalizeOnlineOrder(userId, response);
+        },
+        prefill: {
+          name: this.addressForm.fullName,
+          contact: this.addressForm.phone
+        },
+        theme: {
+          color: '#012d1d'
+        },
+        modal: {
+          ondismiss: () => this.isProcessing.set(false)
+        }
+      };
 
-    const rzp = new (window as any).Razorpay(options);
-    rzp.open();
+      const rzp = new (globalThis as any).Razorpay(options);
+      rzp.open();
+    });
+  }
+
+  // Dynamically loads the Razorpay checkout script only when a payment is initiated
+  private loadRazorpayScript(): Promise<void> {
+    return new Promise((resolve) => {
+      if ((globalThis as any).Razorpay) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      document.body.appendChild(script);
+    });
   }
 
   // Verifies the online payment signature with the backend to finalize the order
@@ -341,7 +392,9 @@ export class CheckoutComponent implements OnInit {
     const verifyPayload = {
       orderId: response.razorpay_order_id,
       paymentId: response.razorpay_payment_id,
-      signature: response.razorpay_signature
+      signature: response.razorpay_signature,
+      addressId: this.selectedAddressId() ?? undefined,
+      discountCode: this.appliedCoupon()?.code
     };
 
     this.orderService.verifyPayment(verifyPayload).pipe(

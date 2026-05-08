@@ -60,6 +60,42 @@ export interface CheckoutPayload {
   discountCode?: string;
 }
 
+export type DiscountType = 'PERCENTAGE' | 'FIXED';
+
+export interface Coupon {
+  couponId: number;
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  minOrderAmount: number;
+  maxUsage: number | null;
+  usageCount: number;
+  expiryDate: string | null;
+  active: boolean;
+  createdAt: string;
+  isExpired: boolean;
+  isExhausted: boolean;
+}
+
+export interface CouponValidateResponse {
+  valid: boolean;
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  discountAmount: number;
+  finalAmount: number;
+  message: string;
+}
+
+export interface CouponRequestPayload {
+  code: string;
+  discountType: DiscountType;
+  discountValue: number;
+  minOrderAmount: number;
+  maxUsage: number | null;
+  expiryDate: string | null;
+}
+
 export interface Book {
   bookId: number;
   title: string;
@@ -111,6 +147,7 @@ export interface Order {
   quantity: number;
   bookId: number;
   bookName: string;
+  paymentMethod?: CheckoutPaymentMethod;
   customerEmail?: string;
   address?: Address;
   statusHistory: OrderStatusLog[];

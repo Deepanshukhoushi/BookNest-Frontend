@@ -78,10 +78,10 @@
 
               <div class="address-form">
                 <div class="form-field-group">
-                  <label class="field" [class.error-field]="hasFieldError('fullName')">
+                  <label class="field" for="checkout-fullName" [class.error-field]="hasFieldError('fullName')">
                     <span>Full name</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" name="fullName" type="text" placeholder="Full name" [class.invalid]="hasFieldError('fullName')" />
+                      <input id="checkout-fullName" [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" name="fullName" type="text" placeholder="Full name" [class.invalid]="hasFieldError('fullName')" />
                       <span *ngIf="hasFieldError('fullName')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('fullName')" class="error-msg">❌ {{ addressErrors()['fullName'] }}</span>
@@ -89,10 +89,10 @@
                 </div>
 
                 <div class="form-field-group">
-                  <label class="field" [class.error-field]="hasFieldError('phone')">
+                  <label class="field" for="checkout-phone" [class.error-field]="hasFieldError('phone')">
                     <span>Phone</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" [class.invalid]="hasFieldError('phone')" />
+                      <input id="checkout-phone" [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" name="phone" type="tel" placeholder="10-digit mobile number" maxlength="10" inputmode="numeric" [class.invalid]="hasFieldError('phone')" />
                       <span *ngIf="hasFieldError('phone')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('phone')" class="error-msg">❌ {{ addressErrors()['phone'] }}</span>
@@ -100,10 +100,10 @@
                 </div>
 
                 <div class="form-field-group field-wide">
-                  <label class="field" [class.error-field]="hasFieldError('street')">
+                  <label class="field" for="checkout-street" [class.error-field]="hasFieldError('street')">
                     <span>Street</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" name="street" type="text" placeholder="Flat/House no, Street" [class.invalid]="hasFieldError('street')" />
+                      <input id="checkout-street" [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" name="street" type="text" placeholder="Flat/House no, Street" [class.invalid]="hasFieldError('street')" />
                       <span *ngIf="hasFieldError('street')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('street')" class="error-msg">❌ {{ addressErrors()['street'] }}</span>
@@ -111,10 +111,10 @@
                 </div>
 
                 <div class="form-field-group">
-                  <label class="field" [class.error-field]="hasFieldError('city')">
+                  <label class="field" for="checkout-city" [class.error-field]="hasFieldError('city')">
                     <span>City</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" name="city" type="text" placeholder="City" [class.invalid]="hasFieldError('city')" />
+                      <input id="checkout-city" [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" name="city" type="text" placeholder="City" [class.invalid]="hasFieldError('city')" />
                       <span *ngIf="hasFieldError('city')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('city')" class="error-msg">❌ {{ addressErrors()['city'] }}</span>
@@ -122,10 +122,10 @@
                 </div>
 
                 <div class="form-field-group">
-                  <label class="field" [class.error-field]="hasFieldError('state')">
+                  <label class="field" for="checkout-state" [class.error-field]="hasFieldError('state')">
                     <span>State</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" name="state" type="text" placeholder="State" [class.invalid]="hasFieldError('state')" />
+                      <input id="checkout-state" [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" name="state" type="text" placeholder="State" [class.invalid]="hasFieldError('state')" />
                       <span *ngIf="hasFieldError('state')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('state')" class="error-msg">❌ {{ addressErrors()['state'] }}</span>
@@ -133,10 +133,10 @@
                 </div>
 
                 <div class="form-field-group">
-                  <label class="field" [class.error-field]="hasFieldError('pincode')">
+                  <label class="field" for="checkout-pincode" [class.error-field]="hasFieldError('pincode')">
                     <span>Pincode</span>
                     <div class="input-wrapper">
-                      <input [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" [class.invalid]="hasFieldError('pincode')" />
+                      <input id="checkout-pincode" [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" name="pincode" type="text" placeholder="6-digit pincode" maxlength="6" inputmode="numeric" [class.invalid]="hasFieldError('pincode')" />
                       <span *ngIf="hasFieldError('pincode')" class="error-icon-field">❌</span>
                     </div>
                     <span *ngIf="hasFieldError('pincode')" class="error-msg">❌ {{ addressErrors()['pincode'] }}</span>
@@ -254,6 +254,38 @@
 
         <div class="calculation">
           <div class="calc-row">
+            <span>Coupon</span>
+            <span>{{ appliedCoupon()?.code || 'None' }}</span>
+          </div>
+          @if (currentStep() === 'review') {
+            <div class="calc-row" style="display: block;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                <span>Apply Coupon</span>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+                  <input
+                    type="text"
+                    [ngModel]="couponCode()"
+                    (ngModelChange)="couponCode.set($event); couponError.set('')"
+                    placeholder="Enter code"
+                    style="min-width: 140px; padding: 0.75rem 0.875rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: var(--surface); color: var(--on-surface);"
+                  />
+                  @if (appliedCoupon()) {
+                    <button type="button" (click)="removeCoupon()" style="padding: 0.75rem 1rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: transparent; color: var(--on-surface); cursor: pointer;">
+                      Remove
+                    </button>
+                  } @else {
+                    <button type="button" (click)="applyCoupon()" [disabled]="couponLoading()" style="padding: 0.75rem 1rem; border-radius: 999px; border: none; background: var(--color-primary); color: white; cursor: pointer;">
+                      {{ couponLoading() ? 'Applying...' : 'Apply' }}
+                    </button>
+                  }
+                </div>
+              </div>
+              @if (couponError()) {
+                <p style="margin: 0.5rem 0 0; color: #b42318; font-size: 0.85rem; text-align: right;">{{ couponError() }}</p>
+              }
+            </div>
+          }
+          <div class="calc-row">
             <span>Subtotal</span>
             <span>{{ subtotal() | currency }}</span>
           </div>
@@ -267,6 +299,12 @@
             <span>Estimated Tax</span>
             <span>{{ tax() | currency }}</span>
           </div>
+          @if (appliedCoupon()) {
+            <div class="calc-row">
+              <span>Discount</span>
+              <span style="color: var(--color-primary);">-{{ appliedCoupon()!.discountAmount | currency }}</span>
+            </div>
+          }
           <div class="total-row">
             <span class="total-label">Total</span>
             <span class="total-amount">{{ total() | currency }}</span>

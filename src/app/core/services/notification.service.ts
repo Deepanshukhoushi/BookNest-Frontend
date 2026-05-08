@@ -178,7 +178,7 @@ export class NotificationService {
 
     const id = (typeof crypto !== 'undefined' && crypto.randomUUID) 
       ? crypto.randomUUID() 
-      : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      : Date.now().toString(36) + Date.now().toString(36).substring(2);
     const newToast: Toast = { id, message, type, timestamp: now };
 
     this.toastsSignal.update((list: Toast[]) => [...list, newToast]);

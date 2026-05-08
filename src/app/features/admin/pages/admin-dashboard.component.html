@@ -33,6 +33,10 @@
         <span class="material-symbols-outlined">verified_user</span>
         Moderation
       </a>
+      <a href="javascript:void(0)" (click)="setView('coupons')" class="nav-item" [class.active]="activeView() === 'coupons'">
+        <span class="material-symbols-outlined">local_offer</span>
+        Coupons
+      </a>
       
       <div class="nav-divider"></div>
 
@@ -126,13 +130,16 @@
             </div>
           </div>
           <div class="insight-list">
-            <div class="insight-row interactive" *ngFor="let item of categoryBreakdown()" (click)="setGenreFilter(item.genre)" [class.selected]="selectedGenre() === item.genre" style="cursor: pointer; transition: all 0.2s ease;">
+            <button type="button" class="insight-row interactive" *ngFor="let item of categoryBreakdown()" 
+                 (click)="setGenreFilter(item.genre)" 
+                 [class.selected]="selectedGenre() === item.genre" 
+                 style="cursor: pointer; transition: all 0.2s ease; width: 100%; border: none; background: transparent; text-align: left; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font: inherit;">
               <div>
                 <strong>{{ item.genre }}</strong>
                 <p>Books currently listed</p>
               </div>
               <span>{{ item.count }}</span>
-            </div>
+            </button>
             <div *ngIf="categoryBreakdown().length === 0" class="empty-panel">
               No genre distribution available yet.
             </div>
@@ -165,13 +172,15 @@
           <div>
             <h4>New / Active Orders</h4>
             <div class="insight-list compact">
-              <div class="insight-row interactive" *ngFor="let order of adminAlerts().newOrders" (click)="setView('orders')" style="cursor: pointer;">
+              <button type="button" class="insight-row interactive" *ngFor="let order of adminAlerts().newOrders" 
+                   (click)="setView('orders')" 
+                   style="cursor: pointer; width: 100%; border: none; background: transparent; text-align: left; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font: inherit;">
                 <div>
                   <strong>#BN-{{ order.orderId }}</strong>
                   <p>{{ order.bookName }}</p>
                 </div>
                 <span class="acq-badge" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
-              </div>
+              </button>
               <div *ngIf="adminAlerts().newOrders.length === 0" class="empty-panel">
                 No active order alerts right now.
               </div>
@@ -476,6 +485,58 @@
       </section>
     }
 
+    @if (activeView() === 'coupons') {
+      <section class="management-card">
+        <div class="card-header">
+          <div>
+            <h3>Coupon Management</h3>
+            <span class="view-all">{{ allCoupons().length }} promotional codes</span>
+          </div>
+          <button class="curate-btn" style="width: auto; padding: 0.75rem 1rem;" (click)="openCouponModal()">
+            Create Coupon
+          </button>
+        </div>
+
+        <table class="data-table" *ngIf="!loading()">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Min Order</th>
+              <th>Usage</th>
+              <th>Expiry</th>
+              <th>Status</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let coupon of allCoupons()">
+              <td>{{ coupon.code }}</td>
+              <td>{{ coupon.discountType }}</td>
+              <td>{{ coupon.discountType === 'PERCENTAGE' ? (coupon.discountValue + '%') : ('₹' + coupon.discountValue) }}</td>
+              <td>₹{{ coupon.minOrderAmount }}</td>
+              <td>{{ coupon.usageCount }} / {{ coupon.maxUsage ?? '∞' }}</td>
+              <td>{{ coupon.expiryDate ? (coupon.expiryDate | date:'medium') : 'Never' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="coupon.active && !coupon.isExpired && !coupon.isExhausted ? 'success' : 'warning'">
+                  {{ coupon.isExpired ? 'Expired' : coupon.isExhausted ? 'Exhausted' : coupon.active ? 'Active' : 'Disabled' }}
+                </span>
+              </td>
+              <td style="text-align: right;">
+                <div class="inline-actions">
+                  <button class="mini-action" (click)="toggleCoupon(coupon.couponId)">
+                    {{ coupon.active ? 'Disable' : 'Enable' }}
+                  </button>
+                  <button class="mini-action danger" (click)="deleteCoupon(coupon.couponId)">Delete</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    }
+
   </main>
 
   <!-- Book Form Modal -->
@@ -491,47 +552,97 @@
         <form [formGroup]="bookForm" (ngSubmit)="submitBookForm()" class="book-form">
           <div class="form-grid">
             <div class="form-group">
-              <label>Title <span class="required">*</span></label>
-              <input type="text" formControlName="title" placeholder="Book Title" class="form-control" [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">
+              <label for="book-title">Title <span class="required">*</span></label>
+              <input id="book-title" type="text" formControlName="title" placeholder="Book Title" class="form-control" [class.is-invalid]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">
             </div>
             <div class="form-group">
-              <label>Author <span class="required">*</span></label>
-              <input type="text" formControlName="author" placeholder="Author Name" class="form-control" [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched">
+              <label for="book-author">Author <span class="required">*</span></label>
+              <input id="book-author" type="text" formControlName="author" placeholder="Author Name" class="form-control" [class.is-invalid]="bookForm.get('author')?.invalid && bookForm.get('author')?.touched">
             </div>
             <div class="form-group">
-              <label>ISBN <span class="required">*</span></label>
-              <input type="text" formControlName="isbn" placeholder="ISBN-13" class="form-control" [class.is-invalid]="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched">
+              <label for="book-isbn">ISBN <span class="required">*</span></label>
+              <input id="book-isbn" type="text" formControlName="isbn" placeholder="ISBN-13" class="form-control" [class.is-invalid]="bookForm.get('isbn')?.invalid && bookForm.get('isbn')?.touched">
             </div>
             <div class="form-group">
-              <label>Genre</label>
-              <input type="text" formControlName="genre" placeholder="e.g. Fiction, Sci-Fi" class="form-control">
+              <label for="book-genre">Genre</label>
+              <input id="book-genre" type="text" formControlName="genre" placeholder="e.g. Fiction, Sci-Fi" class="form-control">
             </div>
             <div class="form-group">
-              <label>Publisher</label>
-              <input type="text" formControlName="publisher" placeholder="Publisher Name" class="form-control">
+              <label for="book-publisher">Publisher</label>
+              <input id="book-publisher" type="text" formControlName="publisher" placeholder="Publisher Name" class="form-control">
             </div>
             <div class="form-group">
-              <label>Cover Image URL</label>
-              <input type="text" formControlName="coverImageUrl" placeholder="https://..." class="form-control">
+              <label for="book-cover">Cover Image URL</label>
+              <input id="book-cover" type="text" formControlName="coverImageUrl" placeholder="https://..." class="form-control">
             </div>
             <div class="form-group">
-              <label>Price (INR) <span class="required">*</span></label>
-              <input type="number" formControlName="price" placeholder="0.00" min="0" class="form-control" [class.is-invalid]="bookForm.get('price')?.invalid && bookForm.get('price')?.touched">
+              <label for="book-price">Price (INR) <span class="required">*</span></label>
+              <input id="book-price" type="number" formControlName="price" placeholder="0.00" min="0" class="form-control" [class.is-invalid]="bookForm.get('price')?.invalid && bookForm.get('price')?.touched">
             </div>
             <div class="form-group">
-              <label>Initial Stock <span class="required">*</span></label>
-              <input type="number" formControlName="stock" placeholder="0" min="0" class="form-control" [class.is-invalid]="bookForm.get('stock')?.invalid && bookForm.get('stock')?.touched">
+              <label for="book-stock">Initial Stock <span class="required">*</span></label>
+              <input id="book-stock" type="number" formControlName="stock" placeholder="0" min="0" class="form-control" [class.is-invalid]="bookForm.get('stock')?.invalid && bookForm.get('stock')?.touched">
             </div>
           </div>
           <div class="form-group full-width">
-            <label>Description</label>
-            <textarea formControlName="description" rows="4" placeholder="Brief synopsis or description..." class="form-control"></textarea>
+            <label for="book-description">Description</label>
+            <textarea id="book-description" formControlName="description" rows="4" placeholder="Brief synopsis or description..." class="form-control"></textarea>
           </div>
           
           <div class="modal-actions">
             <button type="button" class="btn-cancel" (click)="closeBookModal()">Cancel</button>
             <button type="submit" class="btn-submit" [disabled]="bookForm.invalid || actionLoading()">
               {{ actionLoading() ? 'Processing...' : (editingBookId() ? 'Save Changes' : 'Add Edition') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  @if (showCouponModal()) {
+    <div class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Create Coupon</h3>
+          <button class="close-btn" (click)="closeCouponModal()">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form [formGroup]="couponForm" (ngSubmit)="createCoupon()" class="book-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="coupon-code">Code</label>
+              <input id="coupon-code" type="text" formControlName="code" class="form-control" placeholder="SAVE20">
+            </div>
+            <div class="form-group">
+              <label for="coupon-type">Discount Type</label>
+              <select id="coupon-type" formControlName="discountType" class="form-control">
+                <option value="PERCENTAGE">PERCENTAGE</option>
+                <option value="FIXED">FIXED</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="coupon-value">Discount Value</label>
+              <input id="coupon-value" type="number" formControlName="discountValue" class="form-control" min="0.01" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="coupon-min">Minimum Order</label>
+              <input id="coupon-min" type="number" formControlName="minOrderAmount" class="form-control" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label for="coupon-max">Max Usage</label>
+              <input id="coupon-max" type="number" formControlName="maxUsage" class="form-control" min="1">
+            </div>
+            <div class="form-group">
+              <label for="coupon-expiry">Expiry</label>
+              <input id="coupon-expiry" type="datetime-local" formControlName="expiryDate" class="form-control">
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeCouponModal()">Cancel</button>
+            <button type="submit" class="btn-submit" [disabled]="couponForm.invalid || couponSubmitting()">
+              {{ couponSubmitting() ? 'Creating...' : 'Create Coupon' }}
             </button>
           </div>
         </form>

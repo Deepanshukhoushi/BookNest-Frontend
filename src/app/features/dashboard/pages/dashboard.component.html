@@ -83,20 +83,20 @@
 
           <!-- Stats Grid -->
           <div class="overview-stats">
-            <div class="stat-box" (click)="setTab('acquisitions')">
+            <button type="button" class="stat-box" (click)="setTab('acquisitions')" aria-label="View all books">
               <div class="stat-icon acq"><span class="material-symbols-outlined">auto_stories</span></div>
               <div class="stat-content">
                 <span class="value">{{ orders().length }}</span>
                 <span class="label">Total Books</span>
               </div>
-            </div>
-            <div class="stat-box" (click)="setTab('wishlist')">
+            </button>
+            <button type="button" class="stat-box" (click)="setTab('wishlist')" aria-label="View saved books">
               <div class="stat-icon wish"><span class="material-symbols-outlined">favorite</span></div>
               <div class="stat-content">
                 <span class="value">{{ wishlistItems().length }}</span>
                 <span class="label">Saved Books</span>
               </div>
-            </div>
+            </button>
             <div class="stat-box">
               <div class="stat-icon spent"><span class="material-symbols-outlined">payments</span></div>
               <div class="stat-content">
@@ -335,7 +335,7 @@
                   <span class="field-hint" *ngIf="!nameInput().trim() && nameInput() !== ''">Name cannot be blank.</span>
                 </div>
                 <div class="form-field">
-                  <label>Email Address</label>
+                  <span class="field-label">Email Address</span>
                   <input type="email" [value]="user()?.email" disabled class="premium-input disabled">
                   <span class="field-hint">Email is verified and cannot be changed.</span>
                 </div>
@@ -396,8 +396,9 @@
 
                 <div class="address-form-grid">
                   <div class="form-field">
-                    <label>Recipient Name</label>
+                    <label for="recipientName">Recipient Name</label>
                     <input
+                      id="recipientName"
                       type="text"
                       [ngModel]="addressDraft().fullName"
                       (ngModelChange)="updateAddressField('fullName', $event)"
@@ -417,8 +418,9 @@
                     >
                   </div>
                   <div class="form-field address-span">
-                    <label>Flat / Street / Landmark</label>
+                    <label for="addrFlat">Flat / Street / Landmark</label>
                     <input
+                      id="addrFlat"
                       type="text"
                       [ngModel]="addressDraft().flatNumber"
                       (ngModelChange)="updateAddressField('flatNumber', $event)"
@@ -426,8 +428,9 @@
                       class="premium-input">
                   </div>
                   <div class="form-field">
-                    <label>City</label>
+                    <label for="addrCity">City</label>
                     <input
+                      id="addrCity"
                       type="text"
                       [ngModel]="addressDraft().city"
                       (ngModelChange)="updateAddressField('city', $event)"
@@ -435,8 +438,9 @@
                       class="premium-input">
                   </div>
                   <div class="form-field">
-                    <label>State</label>
+                    <label for="addrState">State</label>
                     <input
+                      id="addrState"
                       type="text"
                       [ngModel]="addressDraft().state"
                       (ngModelChange)="updateAddressField('state', $event)"

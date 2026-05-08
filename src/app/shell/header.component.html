@@ -1,9 +1,9 @@
 <header class="main-header" [class.scrolled]="isScrolled()">
   <nav class="max-width-container nav-container">
     <!-- Logo -->
-    <div class="logo-section" routerLink="/">
+    <a class="logo-section" routerLink="/" aria-label="Booknest Home">
       <app-logo variant="light" size="1.5rem"></app-logo>
-    </div>
+    </a>
     
     <!-- Search -->
     <div class="search-section">
@@ -84,7 +84,8 @@
 
               <div class="notification-list custom-scrollbar">
                 @for (note of notifications(); track note.notificationId) {
-                  <div 
+                  <button 
+                    type="button"
                     class="notification-item" 
                     [class.unread]="!note.isRead"
                     (click)="markAsRead(note.notificationId, $event)"
@@ -99,7 +100,7 @@
                     @if (!note.isRead) {
                       <div class="unread-dot"></div>
                     }
-                  </div>
+                  </button>
                 } @empty {
                   <div class="empty-state">
                     <span class="material-symbols-outlined large-icon">notifications_off</span>
@@ -114,13 +115,13 @@
 
         <!-- Profile + Logout -->
         <div class="user-actions profile-section">
-          <div class="avatar-circle" routerLink="/dashboard" [title]="user()?.fullName || 'Profile'">
+          <a class="avatar-circle" routerLink="/dashboard" [title]="user()?.fullName || 'Profile'" [attr.aria-label]="user()?.fullName || 'Profile'">
             @if (avatarUrl()) {
               <img [src]="avatarUrl()" alt="Profile" class="header-avatar-img" (error)="onImageError()">
             } @else {
               {{ userInitials() }}
             }
-          </div>
+          </a>
         </div>
 
       } @else {
@@ -137,8 +138,8 @@
 
 <!-- Mobile Navigation Drawer -->
 @if (showMobileMenu()) {
-  <div class="mobile-nav-overlay open" (click)="toggleMobileMenu()">
-    <div class="mobile-nav-drawer" (click)="$event.stopPropagation()">
+  <div class="mobile-nav-overlay open" (click)="toggleMobileMenu()" (keydown.escape)="toggleMobileMenu()">
+    <dialog class="mobile-nav-drawer" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" open aria-label="Mobile Navigation">
       <div class="drawer-header">
         <app-logo size="1.25rem"></app-logo>
         <button class="drawer-close-btn" (click)="toggleMobileMenu()">
@@ -175,7 +176,7 @@
           <span class="material-symbols-outlined">login</span> Sign In
         </a>
       }
-    </div>
+    </dialog>
   </div>
 }
 

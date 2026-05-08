@@ -153,11 +153,26 @@ import { Order, OrderStatusLog } from '../../../shared/models/models';
 export class OrderTimelineComponent {
   @Input() order!: Order;
 
-  steps = ['PLACED', 'CONFIRMED', 'PAID', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+  get steps(): string[] {
+    if (this.order.paymentMethod === 'COD') {
+      return ['PLACED', 'CONFIRMED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+    }
+    // For WALLET/ONLINE, PAID usually happens immediately after PLACED
+    return ['PLACED', 'PAID', 'CONFIRMED', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+  }
 
   isCompleted(step: string): boolean {
-    const statusIdx = this.steps.indexOf(this.order.orderStatus);
-    const stepIdx = this.steps.indexOf(step);
+    const currentSteps = this.steps;
+    const statusIdx = currentSteps.indexOf(this.order.orderStatus);
+    const stepIdx = currentSteps.indexOf(step);
+    
+    // If current status is not in the list (e.g. CANCELLED), or step is not in the list
+    if (statusIdx === -1 || stepIdx === -1) {
+      // Specialized logic: if order is PAID, then PLACED is definitely completed
+      if (this.order.orderStatus === 'PAID' && step === 'PLACED') return true;
+      return false;
+    }
+    
     return stepIdx <= statusIdx && this.order.orderStatus !== 'CANCELLED' && this.order.orderStatus !== 'FAILED';
   }
 
@@ -183,7 +198,7 @@ export class OrderTimelineComponent {
   }
 
   formatLabel(step: string): string {
-    return step.replace(/_/g, ' ').toLowerCase()
+    return step.replaceAll('_', ' ').toLowerCase()
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');

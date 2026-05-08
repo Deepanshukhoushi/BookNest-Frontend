@@ -4,18 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap, map, of, Observable, switchMap } from 'rxjs';
 import { ApiResponse, User } from '../../shared/models/models';
-
-function base64UrlDecode(input: string): string {
-  const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
-  const padLength = (4 - (normalized.length % 4)) % 4;
-  const padded = normalized + '='.repeat(padLength);
-  return decodeURIComponent(
-    atob(padded)
-      .split('')
-      .map(c => '%' + ('00' + c.codePointAt(0)!.toString(16)).slice(-2))
-      .join('')
-  );
-}
+import { decodeJwtPayload } from '../../shared/utils/jwt.utils';
 
 type JwtPayload = {
   sub?: string;
@@ -162,8 +151,8 @@ export class AuthService {
   resolveImageUrl(path: string | undefined): string | null {
     if (!path) return null;
 
-    const sanitizedPath = path.trim().replace(/\\/g, '/');
-    if (!sanitizedPath) return null;
+    const sanitizedPath = path.trim().replaceAll('\\', '/');
+    if (!sanitizedPath || sanitizedPath === 'null' || sanitizedPath === 'undefined') return null;
     if (sanitizedPath.startsWith('data:')) return sanitizedPath;
 
     if (sanitizedPath.startsWith('/assets/') || sanitizedPath.startsWith('assets/')) {
@@ -174,8 +163,15 @@ export class AuthService {
       return this.withProfileCacheBust(sanitizedPath);
     }
 
-    const normalizedPath = sanitizedPath.startsWith('/') ? sanitizedPath : `/${sanitizedPath}`;
-    return this.withProfileCacheBust(`${this.gatewayOrigin}${encodeURI(normalizedPath)}`);
+    let finalPath = sanitizedPath;
+    // If path is just a filename (no slashes) and not an asset, assume it's a profile image
+    if (!finalPath.includes('/')) {
+      finalPath = `/uploads/profiles/${finalPath}`;
+    } else if (!finalPath.startsWith('/')) {
+      finalPath = `/${finalPath}`;
+    }
+
+    return this.withProfileCacheBust(`${this.gatewayOrigin}${encodeURI(finalPath)}`);
   }
 
   private withProfileCacheBust(url: string): string {
@@ -259,15 +255,17 @@ export class AuthService {
   }
 
   private decodeToken(token: string): JwtPayload {
-    const payloadBase64 = token.split('.')[1];
-    if (!payloadBase64) return {};
-    const payloadJson = base64UrlDecode(payloadBase64);
-    return JSON.parse(payloadJson) as JwtPayload;
+    return (decodeJwtPayload(token) ?? {}) as JwtPayload;
   }
 
   private getStoredUser(): User | null {
     const storedUser = localStorage.getItem('user');
-    return storedUser ? JSON.parse(storedUser) : null;
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser) as User;
+    } catch {
+      return null;
+    }
   }
 
   private clearSession() {

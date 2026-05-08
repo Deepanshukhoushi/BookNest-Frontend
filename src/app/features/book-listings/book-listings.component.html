@@ -35,18 +35,18 @@
     <div class="filter-section">
       <span class="filter-label">Genres</span>
       <div class="genre-list">
-        <div 
+        <label 
           class="filter-row" 
           *ngFor="let genre of displayedGenres()"
           [class.active]="selectedGenre() === genre"
-          (click)="toggleGenre(genre)"
         >
           <div class="custom-checkbox">
-            <input type="checkbox" [checked]="selectedGenre() === genre" (change)="$event.stopPropagation(); toggleGenre(genre)">
-            <span class="checkbox-box"></span>
+            <input type="checkbox" [checked]="selectedGenre() === genre" (change)="toggleGenre(genre)">
+            <span class="checkmark"></span>
           </div>
-          <span class="row-label">{{ genre }}</span>
-        </div>
+          <span class="genre-name">{{ genre }}</span>
+        </label>
+
         
         <button class="more-toggle" (click)="toggleShowAllGenres()">
           {{ showAllGenres() ? 'Show Fewer' : '+ ' + (allGenres.length - 5) + ' More' }}
@@ -61,12 +61,16 @@
       <span class="filter-label">Min Rating</span>
       <div class="rating-filter-container">
         <div class="star-row">
-          <span 
+          <button 
             *ngFor="let star of [1,2,3,4,5]" 
-            class="material-symbols-outlined star-icon"
+            type="button"
+            class="star-icon-btn"
             [class.filled]="(minRating() || 0) >= star"
             (click)="setRating(star)"
-          >star</span>
+            [attr.aria-label]="'Filter by ' + star + ' stars and up'"
+          >
+            <span class="material-symbols-outlined star-icon">star</span>
+          </button>
           <span class="rating-badge" *ngIf="minRating()">{{ minRating() }}+</span>
         </div>
         <button class="clear-rating-btn" *ngIf="minRating()" (click)="setRating(0)">

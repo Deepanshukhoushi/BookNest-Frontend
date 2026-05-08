@@ -181,8 +181,8 @@ export class BookListingsComponent implements OnInit {
 
   // Updates the maximum price constraint for the book search
   updateMaxPrice(event: any) {
-    const value = parseInt(event.target.value);
-    if (!isNaN(value)) {
+    const value = Number.parseInt(event.target.value, 10);
+    if (!Number.isNaN(value)) {
       this.maxPrice.set(Math.max(value, this.minPrice()));
     }
   }

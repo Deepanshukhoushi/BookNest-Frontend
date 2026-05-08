@@ -6,9 +6,10 @@ import { forkJoin, catchError, of } from 'rxjs';
 import { LogoComponent } from '../../../shared/ui/logo/logo.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookService } from '../../../core/services/book.service';
+import { CouponService } from '../../../core/services/coupon.service';
 import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
-import { Book, Order, OrderStatus, Review, ReviewStatus, User } from '../../../shared/models/models';
+import { Book, Coupon, CouponRequestPayload, Order, OrderStatus, Review, ReviewStatus, User } from '../../../shared/models/models';
 import { ConfirmModalComponent } from '../../../shared/ui/confirm-modal.component';
 import { environment } from '../../../../environments/environment';
 
@@ -28,6 +29,7 @@ export class AdminDashboardComponent implements OnInit {
   private bookService = inject(BookService);
   private orderService = inject(OrderService);
   private reviewService = inject(ReviewService);
+  private readonly couponService = inject(CouponService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
@@ -44,7 +46,17 @@ export class AdminDashboardComponent implements OnInit {
     coverImageUrl: ['']
   });
 
+  couponForm: FormGroup = this.fb.group({
+    code: ['', Validators.required],
+    discountType: ['PERCENTAGE', Validators.required],
+    discountValue: [0, [Validators.required, Validators.min(0.01)]],
+    minOrderAmount: [0, [Validators.required, Validators.min(0)]],
+    maxUsage: [null],
+    expiryDate: ['']
+  });
+
   showBookModal = signal(false);
+  showCouponModal = signal(false);
   editingBookId = signal<number | null>(null);
 
   // Confirm Modal State
@@ -66,6 +78,8 @@ export class AdminDashboardComponent implements OnInit {
   allUsers = signal<User[]>([]);
   /** All user-submitted book reviews */
   allReviews = signal<Review[]>([]);
+  /** All configured coupon codes */
+  allCoupons = signal<Coupon[]>([]);
 
   // --- UI & Moderation State ---
   /** Currently active tab in the review moderation panel */
@@ -85,6 +99,7 @@ export class AdminDashboardComponent implements OnInit {
   actionError = signal('');
   /** Flag to track if the admin's own profile image fails to load */
   adminProfileImageError = signal(false);
+  couponSubmitting = signal(false);
 
   /** Active order fulfillment filter (e.g., 'SHIPPED', 'DELIVERED') */
   filterStatus = signal<string>('ALL');
@@ -287,7 +302,8 @@ export class AdminDashboardComponent implements OnInit {
       orders: this.orderService.getAllOrders().pipe(catchError(() => of([]))),
       users: this.authService.getAllUsers().pipe(catchError(() => of([]))),
       reviews: this.reviewService.getAllReviews().pipe(catchError(() => of([]))),
-      reviewCounts: this.reviewService.getStatusCounts().pipe(catchError(() => of({ PENDING: 0, APPROVED: 0, REJECTED: 0 })))
+      reviewCounts: this.reviewService.getStatusCounts().pipe(catchError(() => of({ PENDING: 0, APPROVED: 0, REJECTED: 0 }))),
+      coupons: this.couponService.getAllCoupons().pipe(catchError(() => of([])))
     }).subscribe({
       next: (data: any) => {
         this.inventory.set(data.books.content);
@@ -300,6 +316,7 @@ export class AdminDashboardComponent implements OnInit {
         this.allUsers.set(sortedUsers);
         this.allReviews.set(data.reviews);
         this.reviewStatusCounts.set(data.reviewCounts);
+        this.allCoupons.set(data.coupons);
         this.loading.set(false);
       },
       error: () => {
@@ -566,7 +583,7 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
     if (filter === 'PLACED') return 'Placed';
     if (filter === 'CONFIRMED') return 'Confirmed';
     if (filter === 'PAID') return 'Paid';
-    return filter.replace(/_/g, ' ');
+    return filter.replaceAll('_', ' ');
   }
 
   openAddBookModal() {
@@ -704,6 +721,77 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
   setView(view: string) {
     this.activeView.set(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  openCouponModal() {
+    this.couponForm.reset({
+      code: '',
+      discountType: 'PERCENTAGE',
+      discountValue: 0,
+      minOrderAmount: 0,
+      maxUsage: null,
+      expiryDate: ''
+    });
+    this.showCouponModal.set(true);
+  }
+
+  closeCouponModal() {
+    this.showCouponModal.set(false);
+  }
+
+  createCoupon() {
+    if (this.couponForm.invalid) {
+      this.actionError.set('Please complete the coupon form correctly.');
+      return;
+    }
+
+    const value = this.couponForm.getRawValue();
+    const payload: CouponRequestPayload = {
+      code: String(value.code ?? '').trim().toUpperCase(),
+      discountType: value.discountType,
+      discountValue: Number(value.discountValue),
+      minOrderAmount: Number(value.minOrderAmount ?? 0),
+      maxUsage: value.maxUsage === null || value.maxUsage === '' ? null : Number(value.maxUsage),
+      expiryDate: value.expiryDate || null
+    };
+
+    this.couponSubmitting.set(true);
+    this.couponService.createCoupon(payload).subscribe({
+      next: (coupon) => {
+        this.allCoupons.update(coupons => [coupon, ...coupons]);
+        this.couponSubmitting.set(false);
+        this.showCouponModal.set(false);
+        this.actionMessage.set(`Coupon ${coupon.code} created successfully.`);
+      },
+      error: (err) => {
+        this.couponSubmitting.set(false);
+        this.actionError.set(err.error?.message || 'Failed to create coupon.');
+      }
+    });
+  }
+
+  deleteCoupon(id: number) {
+    this.couponService.deleteCoupon(id).subscribe({
+      next: () => {
+        this.allCoupons.update(coupons => coupons.filter(coupon => coupon.couponId !== id));
+        this.actionMessage.set('Coupon deleted successfully.');
+      },
+      error: (err) => {
+        this.actionError.set(err.error?.message || 'Failed to delete coupon.');
+      }
+    });
+  }
+
+  toggleCoupon(id: number) {
+    this.couponService.toggleCoupon(id).subscribe({
+      next: (updatedCoupon) => {
+        this.allCoupons.update(coupons => coupons.map(coupon => coupon.couponId === id ? updatedCoupon : coupon));
+        this.actionMessage.set(`Coupon ${updatedCoupon.code} updated.`);
+      },
+      error: (err) => {
+        this.actionError.set(err.error?.message || 'Failed to update coupon.');
+      }
+    });
   }
 
 

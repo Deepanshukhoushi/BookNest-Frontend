@@ -629,16 +629,21 @@
 }
 
 .password-input {
-  padding-right: 48px !important;
+  padding-right: 56px !important;
+}
+
+.password-field-shell {
+  position: relative;
+  width: 100%;
 }
 
 .password-toggle {
   position: absolute;
-  right: 8px;
-  top: 26px; /* Explicit vertical center for 52px input */
+  right: 12px;
+  top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -650,6 +655,8 @@
   transition: color 0.2s;
   border-radius: 50%;
   outline: none;
+  padding: 0;
+  line-height: 1;
 }
 
 .password-toggle:hover {
@@ -658,12 +665,13 @@
 }
 
 .password-toggle .material-symbols-outlined {
-  font-size: 22px;
-  width: 24px;
-  height: 24px;
+  font-size: 20px;
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  line-height: 1;
 }
 
 /* Hide browser default password toggles */
@@ -677,8 +685,9 @@ input::-ms-clear {
 .forgot-password-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: -12px;
+  margin-top: 0;
   margin-bottom: 24px;
+  min-height: 20px;
 }
 
 .forgot-link {
@@ -701,6 +710,23 @@ input::-ms-clear {
 
 /* Spacing Adjustment */
 .forgot-password-row {
+  margin-top: 4px;
   margin-bottom: 8px !important;
 } 
 
+/* Validation Visuals */
+.input-invalid {
+  border-color: var(--color-error) !important;
+}
+
+.input-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(201, 76, 76, 0.1) !important;
+}
+
+.field-error {
+  font-size: 11px;
+  color: var(--color-error);
+  font-weight: 600;
+  margin-top: 4px;
+  animation: fadeIn 0.2s ease;
+}

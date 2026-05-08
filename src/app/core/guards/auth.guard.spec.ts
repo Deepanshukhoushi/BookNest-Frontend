@@ -57,6 +57,17 @@ describe('authGuard', () => {
     expect(result).toBe(true);
   });
 
+  it('should deny access when token is expired', () => {
+    localStorage.setItem('token', makeJwt({ role: 'USER', exp: Math.floor(Date.now() / 1000) - 60 }));
+
+    const result = TestBed.runInInjectionContext(() =>
+      authGuard(mockRoute as ActivatedRouteSnapshot, mockState as RouterStateSnapshot)
+    );
+
+    expect(result).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/auth'], { queryParams: { returnUrl: '/dashboard' } });
+  });
+
   it('should allow access when user role matches required role', () => {
     localStorage.setItem('token', makeJwt({ role: 'ADMIN' }));
     mockRoute = { data: { roles: ['ADMIN'] } };

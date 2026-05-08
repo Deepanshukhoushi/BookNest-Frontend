@@ -139,5 +139,11 @@ describe('AuthService', () => {
       expect(service.resolveImageUrl('http://external.com/img.jpg')).toContain('http://external.com/img.jpg');
       expect(service.resolveImageUrl('/assets/test.png')).toBe('/assets/test.png');
     });
+
+    it('getStoredUser should return null on invalid JSON', () => {
+      localStorage.setItem('user', '{broken-json');
+
+      expect((service as any).getStoredUser()).toBeNull();
+    });
   });
 });

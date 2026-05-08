@@ -1,26 +1,6 @@
 import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-
-// Helper function to decode the user's role directly from the JWT string
-function decodeRoleFromToken(token: string): string | null {
-  try {
-    const payloadBase64 = token.split('.')[1];
-    if (!payloadBase64) return null;
-    const normalized = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-    const padLength = (4 - (normalized.length % 4)) % 4;
-    const padded = normalized + '='.repeat(padLength);
-    const payloadJson = decodeURIComponent(
-      atob(padded)
-        .split('')
-        .map(c => '%' + ('00' + c.codePointAt(0)!.toString(16)).slice(-2))
-        .join('')
-    );
-    const payload = JSON.parse(payloadJson);
-    return payload.role || null;
-  } catch {
-    return null;
-  }
-}
+import { decodeJwtPayload, isTokenExpired } from '../../shared/utils/jwt.utils';
 
 /**
  * Functional route guard that protects sensitive application routes.
@@ -31,11 +11,16 @@ export const authGuard: CanActivateFn = (route, state) => {
   const token = localStorage.getItem('token');
 
   if (token) {
+    if (isTokenExpired(token)) {
+      router.navigate(['/auth'], { queryParams: { returnUrl: state.url } });
+      return false;
+    }
+
     const requiredRoles = (route.data?.['roles'] as string[] | undefined) || [];
     if (requiredRoles.length === 0) return true;
 
     // source of truth is the token, fallback to localStorage if needed
-    const tokenRole = decodeRoleFromToken(token);
+    const tokenRole = (decodeJwtPayload(token)?.['role'] as string | undefined) || null;
     const storedRole = localStorage.getItem('role');
     const finalRole = tokenRole || storedRole || 'USER';
 

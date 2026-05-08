@@ -1,4 +1,4 @@
-﻿/* ============================
+/* ============================
    Dashboard Layout
    ============================ */
 .member-layout {
@@ -252,6 +252,9 @@
   cursor: pointer;
   transition: var(--transition-base);
   box-shadow: var(--shadow-sm);
+  font: inherit;
+  text-align: left;
+  width: 100%;
 }
 
 .stat-box:hover {

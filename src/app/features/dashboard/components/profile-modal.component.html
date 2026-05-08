@@ -1,11 +1,11 @@
-<div class="modal-backdrop" *ngIf="open" (click)="onClose()">
-  <div class="modal-container" (click)="$event.stopPropagation()">
+<div class="modal-backdrop" *ngIf="open" (click)="onClose()" (keydown.escape)="onClose()">
+  <dialog class="modal-container" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" [attr.open]="open ? '' : null" aria-labelledby="profileModalTitle">
     <header class="modal-header">
       <div class="header-icon">
         <span class="material-symbols-outlined">person_edit</span>
       </div>
       <div class="header-text">
-        <h3>Edit Profile</h3>
+        <h3 id="profileModalTitle">Edit Profile</h3>
         <p>Update your profile picture and name</p>
       </div>
       <button class="close-btn" (click)="onClose()" aria-label="Close modal">
@@ -25,7 +25,7 @@
     <form [formGroup]="profileForm" (ngSubmit)="onSave()" class="modal-body">
       <!-- Avatar Upload -->
       <div class="avatar-upload-section">
-        <div class="avatar-preview-wrapper" (click)="fileInput.click()">
+        <button type="button" class="avatar-preview-wrapper" (click)="fileInput.click()" aria-labelledby="uploadHint">
           @if (previewImageSrc()) {
             <img [src]="previewImageSrc()" alt="Preview" class="preview-img" (error)="onPreviewError()">
           } @else {
@@ -36,9 +36,9 @@
           <div class="upload-overlay">
             <span class="material-symbols-outlined">cloud_upload</span>
           </div>
-        </div>
+        </button>
         <input #fileInput type="file" hidden accept="image/*" (change)="onFileSelected($event)">
-        <p class="upload-hint">Click to update photo · Max 2 MB</p>
+        <p id="uploadHint" class="upload-hint">Upload profile picture · Max 2 MB</p>
         <!-- Inline file size error -->
         <div class="validation-msg" *ngIf="fileSizeError()">
           <span class="material-symbols-outlined" style="font-size:14px;vertical-align:middle;">error</span>
@@ -76,5 +76,5 @@
         </button>
       </footer>
     </form>
-  </div>
+  </dialog>
 </div>

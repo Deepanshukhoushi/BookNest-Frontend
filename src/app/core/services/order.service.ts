@@ -71,8 +71,8 @@ export class OrderService {
   }
 
   // Starts an online payment session on the backend
-  initiatePayment(userId: number) {
-    return this.http.post<ApiResponse<string>>(`${this.PAYMENT_URL}/initiate/${userId}`, {}).pipe(
+  initiatePayment(userId: number, addressId?: number | null, discountCode?: string | null) {
+    return this.http.post<ApiResponse<string>>(`${this.PAYMENT_URL}/initiate`, { userId, addressId, discountCode }).pipe(
       map(response => response.data)
     );
   }

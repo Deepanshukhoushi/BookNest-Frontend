@@ -95,4 +95,23 @@ describe('BookListingsComponent', () => {
     expect(component.sortBy()).toBe('price,asc');
     expect(component.isSortOpen()).toBe(false);
   });
+
+  it('should handle price updates', () => {
+    component.updateMaxPrice({ target: { value: '500' } });
+    expect(component.maxPrice()).toBe(500);
+
+    // Invalid value should not change price
+    component.updateMaxPrice({ target: { value: 'abc' } });
+    expect(component.maxPrice()).toBe(500);
+
+    component.updateMinPrice({});
+    expect(component.minPrice()).toBe(0);
+  });
+
+  it('should set rating filter', () => {
+    component.setRating(4);
+    expect(component.minRating()).toBe(4);
+    component.setRating(0);
+    expect(component.minRating()).toBeNull();
+  });
 });

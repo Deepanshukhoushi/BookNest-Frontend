@@ -105,21 +105,21 @@
                 <div class="spec-tile">
                   <span class="spec-icon material-symbols-outlined">barcode</span>
                   <div class="spec-info">
-                    <label>ISBN-13</label>
+                    <span class="spec-label">ISBN-13</span>
                     <span>{{ book()?.isbn }}</span>
                   </div>
                 </div>
                 <div class="spec-tile">
                   <span class="spec-icon material-symbols-outlined">menu_book</span>
                   <div class="spec-info">
-                    <label>Publisher</label>
+                    <span class="spec-label">Publisher</span>
                     <span>{{ book()?.publisher || 'Royal Press' }}</span>
                   </div>
                 </div>
                 <div class="spec-tile">
                   <span class="spec-icon material-symbols-outlined">inventory_2</span>
                   <div class="spec-info">
-                    <label>Availability</label>
+                    <span class="spec-label">Availability</span>
                     <span [class.text-danger]="(book()?.stock || 0) <= 0">
                       {{ (book()?.stock || 0) <= 0 ? 'Out of Stock' : (book()?.stock + ' In Stock') }}
                     </span>
