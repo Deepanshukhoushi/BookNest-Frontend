@@ -540,7 +540,7 @@
   }
   
   <app-confirm-modal
-    [show]="showConfirmModal()"
+    *ngIf="showConfirmModal()"
     [title]="confirmModalConfig().title"
     [message]="confirmModalConfig().message"
     [confirmText]="confirmModalConfig().confirmText"

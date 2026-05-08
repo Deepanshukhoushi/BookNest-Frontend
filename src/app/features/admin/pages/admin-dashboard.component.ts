@@ -701,6 +701,10 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
     (event.target as HTMLImageElement).src = '/assets/images/book-fallback.svg';
   }
 
+  setView(view: string) {
+    this.activeView.set(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
 
   onConfirmAction() {
