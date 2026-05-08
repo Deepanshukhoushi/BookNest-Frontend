@@ -110,18 +110,7 @@ describe('CheckoutComponent', () => {
     expect(component.addressForm.fullName).toBe('John Doe');
   });
 
-  it('should navigate to next step if address is valid', () => {
-    component.addressForm = {
-      fullName: 'John Doe',
-      phone: '1234567890',
-      street: '123 St',
-      city: 'City',
-      state: 'State',
-      pincode: '123456'
-    };
-    component.nextStep();
-    expect(component.currentStep()).toBe('payment');
-  });
+
 
   it('applyCoupon should set appliedCoupon on success', () => {
     component.couponCode.set('SAVE20');
@@ -184,12 +173,7 @@ describe('CheckoutComponent', () => {
     expect(component.total()).toBe(880);
   });
 
-  it('should not navigate to next step if address is invalid', () => {
-    component.addressForm.fullName = '';
-    component.nextStep();
-    expect(component.currentStep()).toBe('address');
-    expect(notificationServiceSpy.error).toHaveBeenCalled();
-  });
+
 
   it('should handle order confirmation (WALLET)', () => {
     component.addressForm = {
@@ -263,23 +247,7 @@ describe('CheckoutComponent', () => {
     expect(component.addressForm.fullName).toBe('');
   });
 
-  it('should handle setStep with validation', () => {
-    component.addressForm.fullName = '';
-    component.setStep('payment');
-    expect(component.currentStep()).toBe('address');
-    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Address is required before proceeding.');
 
-    component.addressForm = {
-      fullName: 'John Doe',
-      phone: '1234567890',
-      street: '123 St',
-      city: 'City',
-      state: 'State',
-      pincode: '123456'
-    };
-    component.setStep('payment');
-    expect(component.currentStep()).toBe('payment');
-  });
 
   it('should handle onInputChange', () => {
     component.selectedAddressId.set(1);

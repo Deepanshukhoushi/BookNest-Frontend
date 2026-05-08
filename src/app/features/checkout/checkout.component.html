@@ -3,38 +3,21 @@
     <a routerLink="/" class="return-link">
       <span class="material-symbols-outlined">arrow_back</span>
       Return to Library
+<main class="checkout-page">
+  <div class="checkout-actions">
+    <a routerLink="/" class="return-link">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Return to Library
     </a>
   </div>
 
   <div class="checkout-main">
     <!-- Left Column: Checkout Flow -->
     <div class="checkout-flow">
-      <!-- Progress Stepper -->
-      <div class="stepper">
-        <div class="step" [class.completed]="currentStep() !== 'address'" [class.active]="currentStep() === 'address'">
-          <div class="step-circle">
-            <span *ngIf="currentStep() !== 'address'" class="material-symbols-outlined">check</span>
-            <span *ngIf="currentStep() === 'address'">1</span>
-          </div>
-          <span class="step-label">Cart Summary</span>
-        </div>
-        <div class="step" [class.completed]="currentStep() === 'review'" [class.active]="currentStep() === 'payment'">
-          <div class="step-circle">
-            <span *ngIf="currentStep() === 'review'" class="material-symbols-outlined">check</span>
-            <span *ngIf="currentStep() !== 'review'">2</span>
-          </div>
-          <span class="step-label">Address & Shipping</span>
-        </div>
-        <div class="step" [class.active]="currentStep() === 'review'">
-          <div class="step-circle">3</div>
-          <span class="step-label">Payment & Review</span>
-        </div>
-      </div>
-
       <!-- Step Content -->
       <div class="checkout-content">
-        <h1 class="checkout-section-title">Complete Your Collection</h1>
-        <p class="checkout-section-desc">Review your curated selections and select a payment method to finalize your acquisition.</p>
+        <h1 class="checkout-section-title">Complete Your Acquisition</h1>
+        <p class="checkout-section-desc">Provide your shipping details and select a payment method to finalize your order.</p>
 
         <!-- Shipping Address -->
         <section class="review-card">
@@ -253,38 +236,32 @@
         </div>
 
         <div class="calculation">
-          <div class="calc-row">
-            <span>Coupon</span>
-            <span>{{ appliedCoupon()?.code || 'None' }}</span>
-          </div>
-          @if (currentStep() === 'review') {
-            <div class="calc-row" style="display: block;">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
-                <span>Apply Coupon</span>
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
-                  <input
-                    type="text"
-                    [ngModel]="couponCode()"
-                    (ngModelChange)="couponCode.set($event); couponError.set('')"
-                    placeholder="Enter code"
-                    style="min-width: 140px; padding: 0.75rem 0.875rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: var(--surface); color: var(--on-surface);"
-                  />
-                  @if (appliedCoupon()) {
-                    <button type="button" (click)="removeCoupon()" style="padding: 0.75rem 1rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: transparent; color: var(--on-surface); cursor: pointer;">
-                      Remove
-                    </button>
-                  } @else {
-                    <button type="button" (click)="applyCoupon()" [disabled]="couponLoading()" style="padding: 0.75rem 1rem; border-radius: 999px; border: none; background: var(--color-primary); color: white; cursor: pointer;">
-                      {{ couponLoading() ? 'Applying...' : 'Apply' }}
-                    </button>
-                  }
-                </div>
+          <div class="calc-row" style="display: block;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+              <span>Apply Coupon</span>
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end;">
+                <input
+                  type="text"
+                  [ngModel]="couponCode()"
+                  (ngModelChange)="couponCode.set($event); couponError.set('')"
+                  placeholder="Enter code"
+                  style="min-width: 140px; padding: 0.75rem 0.875rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: var(--surface); color: var(--on-surface);"
+                />
+                @if (appliedCoupon()) {
+                  <button type="button" (click)="removeCoupon()" style="padding: 0.75rem 1rem; border-radius: 999px; border: 1px solid var(--surface-container-highest); background: transparent; color: var(--on-surface); cursor: pointer;">
+                    Remove
+                  </button>
+                } @else {
+                  <button type="button" (click)="applyCoupon()" [disabled]="couponLoading()" style="padding: 0.75rem 1rem; border-radius: 999px; border: none; background: var(--color-primary); color: white; cursor: pointer;">
+                    {{ couponLoading() ? 'Applying...' : 'Apply' }}
+                  </button>
+                }
               </div>
-              @if (couponError()) {
-                <p style="margin: 0.5rem 0 0; color: #b42318; font-size: 0.85rem; text-align: right;">{{ couponError() }}</p>
-              }
             </div>
-          }
+            @if (couponError()) {
+              <p style="margin: 0.5rem 0 0; color: #b42318; font-size: 0.85rem; text-align: right;">{{ couponError() }}</p>
+            }
+          </div>
           <div class="calc-row">
             <span>Subtotal</span>
             <span>{{ subtotal() | currency }}</span>
@@ -313,12 +290,12 @@
 
         <button 
           class="complete-btn" 
-          (click)="currentStep() === 'review' ? confirmOrder() : nextStep()"
+          (click)="confirmOrder()"
           [disabled]="isProcessing() || (isSubmitted() && hasErrors())">
           <span *ngIf="isProcessing()" class="material-symbols-outlined animate-spin">progress_activity</span>
-          {{ isProcessing() ? 'Placing Order...' : (currentStep() === 'review' ? 'Place Order' : 'Next Step') }}
+          {{ isProcessing() ? 'Placing Order...' : 'Place Order' }}
           <span *ngIf="!isProcessing()" class="material-symbols-outlined">
-            {{ currentStep() === 'review' ? 'check_circle' : 'arrow_forward' }}
+            check_circle
           </span>
         </button>
 

@@ -11,11 +11,10 @@ import { environment } from '../../../environments/environment';
 import { CouponService } from '../../core/services/coupon.service';
 import { CouponValidateResponse } from '../../shared/models/models';
 
-type CheckoutStep = 'address' | 'payment' | 'review';
 type PaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
 
 /**
- * Component managing the multi-step checkout process.
+ * Component managing the checkout process.
  * Handles shipping address collection, payment method selection, and final order confirmation.
  */
 @Component({
@@ -33,7 +32,6 @@ export class CheckoutComponent implements OnInit {
   private router = inject(Router);
   private readonly couponService = inject(CouponService);
 
-  currentStep = signal<CheckoutStep>('address');
   isProcessing = signal(false);
   paymentMethod = signal<PaymentMethod>('WALLET');
   message = signal('');
@@ -133,20 +131,10 @@ export class CheckoutComponent implements OnInit {
   total = computed(() => this.subtotal() + this.tax() + this.shipping() - (this.appliedCoupon()?.discountAmount ?? 0));
   isFreeShipping = computed(() => this.subtotal() > this.SHIPPING_THRESHOLD);
 
-  // Advances to the next step in the checkout process after validation
-  nextStep() {
-    if (this.currentStep() === 'address') {
-      this.isSubmitted.set(true);
-      this.updateAddressErrors();
-      
-      if (Object.keys(this.addressErrors()).length > 0) {
-        this.notificationService.error('Please correct the highlighted errors.');
-        return;
-      }
-      this.currentStep.set('payment');
-    } else if (this.currentStep() === 'payment') {
-      this.currentStep.set('review');
-    }
+  // Reactive validation on input change
+  onInputChange() {
+    this.selectedAddressId.set(null); // Clear selection on manual edit
+    this.updateAddressErrors();
   }
 
   // Updates the addressErrors signal with current validation status
@@ -183,27 +171,10 @@ export class CheckoutComponent implements OnInit {
     return !error.includes('required');
   }
 
-  // Reactive validation on input change
-  onInputChange() {
-    this.selectedAddressId.set(null); // Clear selection on manual edit
-    this.updateAddressErrors();
-  }
-
   // Helper to check if all required address fields are provided and valid
   private isAddressValid(): boolean {
     this.updateAddressErrors();
     return Object.keys(this.addressErrors()).length === 0;
-  }
-
-  // Switches the active checkout step if current data is valid
-  setStep(step: CheckoutStep) {
-    if (step === 'payment' || step === 'review') {
-      if (!this.isAddressValid()) {
-        this.notificationService.error('Address is required before proceeding.');
-        return;
-      }
-    }
-    this.currentStep.set(step);
   }
 
   // Main entry point for confirming and submitting the user's order

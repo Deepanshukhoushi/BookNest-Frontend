@@ -64,72 +64,6 @@
   }
 }
 
-/* Stepper */
-.stepper {
-  display: flex;
-  justify-content: space-between;
-  position: relative;
-  margin-bottom: 2rem;
-}
-
-.stepper::before {
-  content: "";
-  position: absolute;
-  top: 1.25rem;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--border-color);
-  z-index: -1;
-}
-
-.step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  background-color: var(--color-background);
-  padding: 0 1rem;
-}
-
-.step-circle {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 50%;
-  background-color: var(--color-surface);
-  color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  font-weight: 600;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-}
-
-.step.active .step-circle {
-  background-color: var(--color-primary);
-  color: white;
-}
-
-.step.completed .step-circle {
-  background-color: var(--color-primary-light);
-  color: white;
-}
-
-.step-label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.step.active .step-label {
-  color: var(--color-primary);
-  font-weight: 700;
-}
-
 /* Content */
 .checkout-section-title {
   font-size: 2.5rem;
@@ -807,43 +741,6 @@
 .free-shipping {
   color: var(--color-success);
   font-weight: 700;
-}
-
-/* Nav / stepper click buttons */
-.nav-btn {
-  padding: 11px 22px;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  font-size: var(--text-sm);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: var(--transition-base);
-  border: none;
-  min-height: 44px;
-}
-
-.nav-btn.primary {
-  background: var(--color-primary);
-  color: white;
-  box-shadow: 0 4px 14px rgba(127, 22, 53, 0.22);
-}
-
-.nav-btn.primary:hover:not(:disabled) {
-  background: var(--color-primary-light);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(127, 22, 53, 0.3);
-}
-
-.nav-btn.secondary {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1.5px solid var(--color-primary);
-}
-
-.nav-btn.secondary:hover:not(:disabled) {
-  background: rgba(127, 22, 53, 0.05);
 }
 
 /* Secure tag */
