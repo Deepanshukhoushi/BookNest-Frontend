@@ -3,10 +3,10 @@ name: BookNest Frontend CI/CD
 on:
   push:
     branches:
-      - dev
+      - main
   pull_request:
     branches:
-      - dev
+      - main
 
 jobs:
   test-and-analyze:
@@ -37,11 +37,11 @@ jobs:
 
   deploy:
     needs: test-and-analyze
-    if: github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to EC2
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/main'
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -57,8 +57,8 @@ jobs:
               git clone https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Frontend.git booknest-frontend
             fi
             cd booknest-frontend
-            git checkout dev
-            git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Frontend.git dev
+            git checkout main
+            git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/Deepanshukhoushi/BookNest-Frontend.git main
             
             # Clone Backend if not present (needed for docker-compose.yml)
             cd ..

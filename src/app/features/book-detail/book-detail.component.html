@@ -259,7 +259,7 @@
               <div class="author-avatar">{{ getReviewerName(r).charAt(0) }}</div>
               <div class="author-meta">
                 <span class="name">{{ getReviewerName(r) }}</span>
-                <span class="date">{{ r.createdAt | date:'mediumDate' }}</span>
+                <span class="date">{{ r.createdAt | date:'dd/MM/yyyy':'+0530' }}</span>
               </div>
             </div>
             <div class="card-content">

@@ -16,7 +16,7 @@
       <div class="order-top">
         <div>
           <h2>Order #{{ order.orderId }}</h2>
-          <p>{{ order.orderDate | date:'medium' }}</p>
+          <p>{{ order.orderDate | date:'dd/MM/yyyy':'+0530' }}</p>
         </div>
         <span class="status" [ngClass]="statusClass(order.status)">{{ order.status }}</span>
       </div>

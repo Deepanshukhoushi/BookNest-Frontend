@@ -66,7 +66,7 @@
               <div class="hero-text">
                 <p class="hero-label">Member Overview</p>
                 <h1>Welcome back,<br>{{ userProfile().name.split(' ')[0] }}</h1>
-                <p class="hero-meta">Member since {{ userProfile().joinedDate | date:'mediumDate' }} • Verified Member</p>
+                <p class="hero-meta">Member since {{ userProfile().joinedDate | date:'dd/MM/yyyy':'+0530' }} • Verified Member</p>
               </div>
               <div class="wallet-card-new">
                 <div class="wallet-info">
@@ -121,7 +121,7 @@
                     <div class="activity-info">
                       <span class="activity-title">{{ order.bookName }}</span>
                       <span class="activity-meta">
-                        {{ order.orderDate | date:'mediumDate' }}
+                        {{ order.orderDate | date:'dd/MM/yyyy':'+0530' }}
                         <span class="status-pill" [ngClass]="order.orderStatus.toLowerCase()">{{ order.orderStatus }}</span>
                       </span>
                     </div>
@@ -196,7 +196,7 @@
                   <div class="order-card">
                     <div class="order-header">
                       <span class="order-id">#{{ order.orderId }} - {{ order.bookName }}</span>
-                      <span class="order-date">{{ order.orderDate | date:'mediumDate' }}</span>
+                      <span class="order-date">{{ order.orderDate | date:'dd/MM/yyyy':'+0530' }}</span>
                     </div>
                     <div class="order-summary">
                       <span class="status-tag" [attr.data-status]="order.orderStatus">{{ order.orderStatus }}</span>
@@ -287,7 +287,7 @@
                             <span class="gateway-badge">via {{ tx.paymentGateway | uppercase }}</span>
                           }
                         </span>
-                        <span class="tx-date">{{ tx.dateTime | date:'medium' }}</span>
+                        <span class="tx-date">{{ tx.dateTime | date:'dd/MM/yyyy':'+0530' }}</span>
                       </div>
                       <div class="tx-amount" [class.deposit]="tx.transactionType === 'DEPOSIT'">
                         {{ tx.transactionType === 'DEPOSIT' ? '+' : '-' }}{{ tx.amount | currency:'INR' }}

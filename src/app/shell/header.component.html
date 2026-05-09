@@ -54,10 +54,7 @@
       </button>
       
       @if (isAuthenticated()) {
-        <!-- Wishlist -->
-        <button class="icon-btn" [routerLink]="['/dashboard']" [queryParams]="{ tab: 'wishlist' }" title="Wishlist">
-          <span class="material-symbols-outlined">favorite</span>
-        </button>
+
 
         <!-- Notifications -->
         <div class="notification-container">
@@ -95,7 +92,7 @@
                     </div>
                     <div class="note-content">
                       <p class="note-message">{{ note.message }}</p>
-                      <span class="note-time">{{ note.createdAt | date:'shortTime' }} · {{ note.createdAt | date:'mediumDate' }}</span>
+                      <span class="note-time">{{ note.createdAt | date:'dd/MM/yyyy':'+0530' }}</span>
                     </div>
                     @if (!note.isRead) {
                       <div class="unread-dot"></div>

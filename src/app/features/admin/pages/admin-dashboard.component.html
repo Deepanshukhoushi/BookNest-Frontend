@@ -301,7 +301,7 @@
                 <h5>{{ order.bookName }}</h5>
                 <span class="order-id-tag">#BN-{{ order.orderId }}</span>
               </div>
-              <p class="order-timestamp">{{ order.orderDate | date:'short' }}</p>
+              <p class="order-timestamp">{{ order.orderDate | date:'dd/MM/yyyy':'+0530' }}</p>
               
               <!-- Enhanced Customer & Shipping Info -->
               <div class="fulfillment-details">
@@ -450,7 +450,7 @@
                 <div class="review-meta">
                   <span class="review-book">Book #{{ review.bookId }}</span>
                   <span class="review-user">by User #{{ review.userId }}</span>
-                  <span class="review-date">{{ review.createdAt | date: 'MMM d, y' }}</span>
+                  <span class="review-date">{{ review.createdAt | date: 'dd/MM/yyyy':'+0530' }}</span>
                 </div>
                 <p class="review-comment">{{ review.comment }}</p>
               </div>
@@ -517,7 +517,7 @@
               <td>{{ coupon.discountType === 'PERCENTAGE' ? (coupon.discountValue + '%') : ('₹' + coupon.discountValue) }}</td>
               <td>₹{{ coupon.minOrderAmount }}</td>
               <td>{{ coupon.usageCount }} / {{ coupon.maxUsage ?? '∞' }}</td>
-              <td>{{ coupon.expiryDate ? (coupon.expiryDate | date:'medium') : 'Never' }}</td>
+              <td>{{ coupon.expiryDate ? (coupon.expiryDate | date:'dd/MM/yyyy':'+0530') : 'Never' }}</td>
               <td>
                 <span class="status-badge" [ngClass]="coupon.active && !coupon.isExpired && !coupon.isExhausted ? 'success' : 'warning'">
                   {{ coupon.isExpired ? 'Expired' : coupon.isExhausted ? 'Exhausted' : coupon.active ? 'Active' : 'Disabled' }}

@@ -24,7 +24,7 @@ import { Order, OrderStatusLog } from '../../../shared/models/models';
             <div class="step-label">
               <p class="step-title">{{ formatLabel(step) }}</p>
               <p class="step-time" *ngIf="getTimestamp(step)">
-                {{ getTimestamp(step) | date:'MMM d' }}
+                {{ getTimestamp(step) | date:'dd/MM/yyyy':'+0530' }}
               </p>
             </div>
           </div>
