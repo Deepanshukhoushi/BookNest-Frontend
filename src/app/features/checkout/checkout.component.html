@@ -37,7 +37,7 @@
           </button>
 
           <button 
-            *ngFor="let addr of savedAddresses()" 
+            *ngFor="let addr of savedAddresses(); trackBy: trackByAddressId" 
             class="selection-chip"
             [class.active]="selectedAddressId() === addr.addressId"
             (click)="selectAddress(addr)">
@@ -75,49 +75,52 @@
         <div class="manual-form" *ngIf="selectedAddressId() === null">
           <div class="form-grid">
             <div class="form-group">
-              <label>Full Name</label>
+              <label for="fullName">Full Name</label>
               <div class="input-box" [class.invalid]="hasFieldError('fullName')">
-                <input [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" type="text" placeholder="Your full name">
+                <input id="fullName" [(ngModel)]="addressForm.fullName" (ngModelChange)="onInputChange()" type="text" placeholder="Your full name">
               </div>
               <span class="error-text" *ngIf="hasFieldError('fullName')">{{ addressErrors()['fullName'] }}</span>
             </div>
 
             <div class="form-group">
-              <label>Phone Number</label>
+              <label for="phone">Phone Number</label>
               <div class="input-box" [class.invalid]="hasFieldError('phone')">
-                <input [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" type="tel" placeholder="10-digit mobile" maxlength="10">
+                <input id="phone" [(ngModel)]="addressForm.phone" (ngModelChange)="onInputChange()" type="tel" placeholder="10-digit mobile" maxlength="10">
               </div>
               <span class="error-text" *ngIf="hasFieldError('phone')">{{ addressErrors()['phone'] }}</span>
             </div>
 
             <div class="form-group full-width">
-              <label>Street Address</label>
+              <label for="street">Street Address</label>
               <div class="input-box" [class.invalid]="hasFieldError('street')">
-                <input [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" type="text" placeholder="Flat, Street, Landmark">
+                <input id="street" [(ngModel)]="addressForm.street" (ngModelChange)="onInputChange()" type="text" placeholder="Flat, Street, Landmark">
               </div>
               <span class="error-text" *ngIf="hasFieldError('street')">{{ addressErrors()['street'] }}</span>
             </div>
 
             <div class="form-group">
-              <label>City</label>
+              <label for="city">City</label>
               <div class="input-box" [class.invalid]="hasFieldError('city')">
-                <input [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" type="text" placeholder="City">
+                <input id="city" [(ngModel)]="addressForm.city" (ngModelChange)="onInputChange()" type="text" placeholder="City">
               </div>
               <span class="error-text" *ngIf="hasFieldError('city')">{{ addressErrors()['city'] }}</span>
             </div>
 
             <div class="form-group">
-              <label>State</label>
+              <label for="state">State</label>
               <div class="input-box" [class.invalid]="hasFieldError('state')">
-                <input [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()" type="text" placeholder="State">
+                <select id="state" [(ngModel)]="addressForm.state" (ngModelChange)="onInputChange()">
+                  <option value="">Select State</option>
+                  <option *ngFor="let s of indianStates" [value]="s">{{ s }}</option>
+                </select>
               </div>
               <span class="error-text" *ngIf="hasFieldError('state')">{{ addressErrors()['state'] }}</span>
             </div>
 
             <div class="form-group">
-              <label>Pincode</label>
+              <label for="pincode">Pincode</label>
               <div class="input-box" [class.invalid]="hasFieldError('pincode')">
-                <input [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" type="text" placeholder="6 digits" maxlength="6">
+                <input id="pincode" [(ngModel)]="addressForm.pincode" (ngModelChange)="onInputChange()" type="text" placeholder="6 digits" maxlength="6">
               </div>
               <span class="error-text" *ngIf="hasFieldError('pincode')">{{ addressErrors()['pincode'] }}</span>
             </div>
@@ -181,7 +184,7 @@
         <h3>Order Summary</h3>
         
         <div class="items-preview">
-          <div class="preview-item" *ngFor="let item of checkoutItems()">
+          <div class="preview-item" *ngFor="let item of checkoutItems(); trackBy: trackByItemTitle">
             <img [src]="item.imageUrl" [alt]="item.title">
             <div class="item-info">
               <strong>{{ item.title }}</strong>
@@ -234,9 +237,10 @@
 
         <button 
           class="place-order-btn" 
+          [class.processing]="isProcessing()"
           (click)="confirmOrder()"
-          [disabled]="isProcessing() || (isSubmitted() && hasErrors())">
-          <span *ngIf="isProcessing()" class="spinner material-symbols-outlined">progress_activity</span>
+          [disabled]="!canPlaceOrder()">
+          <span *ngIf="isProcessing()" class="spinner"></span>
           {{ isProcessing() ? 'Processing...' : 'Place Order' }}
           <span *ngIf="!isProcessing()" class="material-symbols-outlined">arrow_forward</span>
         </button>

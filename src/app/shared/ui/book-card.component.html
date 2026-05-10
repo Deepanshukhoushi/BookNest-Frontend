@@ -27,7 +27,7 @@
     
     <div class="card-rating" *ngIf="rating() > 0">
       <div class="stars">
-        <div class="star-container" *ngFor="let s of [1,2,3,4,5]">
+        <div class="star-container" *ngFor="let s of [1,2,3,4,5]; trackBy: trackByValue">
           <span class="material-symbols-outlined star-icon empty">star</span>
           <div class="star-fill" [style.width.%]="getStarFill(s)">
             <span class="material-symbols-outlined star-icon filled">star</span>

@@ -13,20 +13,23 @@ describe('ConfirmModalComponent', () => {
 
     fixture = TestBed.createComponent(ConfirmModalComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    // fixture.detectChanges(); // Do not call here to avoid ExpressionChanged error when setInput is used later
   });
 
   it('should create', () => {
+    fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
   it('should emit confirm event', () => {
+    fixture.detectChanges();
     const spy = vi.spyOn(component.confirm, 'emit');
     component.onConfirm();
     expect(spy).toHaveBeenCalled();
   });
 
   it('should emit cancel event', () => {
+    fixture.detectChanges();
     const spy = vi.spyOn(component.cancel, 'emit');
     component.onCancel();
     expect(spy).toHaveBeenCalled();

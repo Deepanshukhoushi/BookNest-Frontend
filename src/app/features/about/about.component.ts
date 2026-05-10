@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
       </section>
 
       <div class="story-grid">
-        <div class="glass-card story-card">
+        <div class="card card--glass story-card">
           <div class="icon">
             <span class="material-symbols-outlined">architecture</span>
           </div>
@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
           <p>Booknest was founded on the principle of 'The Intelligent Shelf'. We don't just sell books; we curate experiences that linger long after the final page is turned.</p>
         </div>
 
-        <div class="glass-card story-card">
+        <div class="card card--glass story-card">
           <div class="icon">
             <span class="material-symbols-outlined">history_edu</span>
           </div>
@@ -29,7 +29,7 @@ import { CommonModule } from '@angular/common';
           <p>From our glassmorphic interface to our typography selection, every pixel is designed to honor the literary tradition while embracing modern digital innovation.</p>
         </div>
 
-        <div class="glass-card story-card">
+        <div class="card card--glass story-card">
           <div class="icon">
             <span class="material-symbols-outlined">groups</span>
           </div>
@@ -45,7 +45,7 @@ import { CommonModule } from '@angular/common';
         </blockquote>
       </section>
 
-      <section class="tech-stack glass-card">
+      <section class="tech-stack card card--glass">
         <h3>The Engine</h3>
         <p>Built on a resilient microservices architecture (Auth, Order, Wallet, Notification), Booknest represents the pinnacle of modern software craftsmanship.</p>
       </section>
@@ -131,7 +131,7 @@ import { CommonModule } from '@angular/common';
       text-align: center;
       margin-bottom: var(--space-3xl);
       padding: var(--space-3xl) var(--space-xl);
-      background-color: rgba(127, 22, 53, 0.03);
+      background-color: var(--neutral-100);
       border-radius: var(--radius-2xl);
     }
     .premium-quote {
@@ -153,7 +153,7 @@ import { CommonModule } from '@angular/common';
     .tech-stack {
       text-align: center;
       padding: var(--space-3xl);
-      background: white;
+      background: var(--color-surface);
       border-radius: var(--radius-xl);
       border: 1px solid var(--border-color);
       box-shadow: var(--shadow-md);

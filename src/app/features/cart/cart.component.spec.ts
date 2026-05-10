@@ -104,10 +104,34 @@ describe('CartComponent', () => {
   });
 
   it('should move item from wishlist to cart', () => {
-    const mockWishlistItem = { bookId: 2, title: 'Wishlist Book' };
+    const mockWishlistItem = { itemId: 1, bookId: 2, bookTitle: 'Wishlist Book', bookPrice: 500, addedAt: new Date().toISOString() };
     component.moveToCart(mockWishlistItem);
     
     expect(cartServiceSpy.addToCart).toHaveBeenCalledWith(2, 1);
     expect(wishlistServiceSpy.removeFromWishlist).toHaveBeenCalledWith(101, 2);
+  });
+
+  it('should handle quantity limits', () => {
+    // Mock item with stock 5
+    cartServiceSpy.cart.set({
+      ...mockCart,
+      items: [{ ...mockCart.items[0], stockAvailable: 5 }]
+    });
+    
+    component.updateQuantity(1, 6);
+    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Only 5 copies available in stock.');
+    expect(cartServiceSpy.updateQuantity).not.toHaveBeenCalled();
+  });
+
+  it('should redirect to auth if moving to cart without login', () => {
+    authServiceSpy.currentUser.set(null);
+    const mockWishlistItem = { itemId: 1, bookId: 2, bookTitle: 'Wishlist Book', bookPrice: 500, addedAt: new Date().toISOString() };
+    component.moveToCart(mockWishlistItem);
+    expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth'], expect.any(Object));
+  });
+
+  it('should have trackBy functions', () => {
+    expect(component.trackByItemId(0, { itemId: 123 } as any)).toBe(123);
+    expect(component.trackByWishlistId(0, { itemId: 456 } as any)).toBe(456);
   });
 });

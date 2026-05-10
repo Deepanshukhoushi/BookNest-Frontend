@@ -159,7 +159,13 @@
                   <h3>{{ isEditing() ? 'Edit Your Review' : 'Write a Review' }}</h3>
                   <div class="star-selector">
                     @for (s of [1,2,3,4,5]; track s) {
-                      <button type="button" (click)="setRating(s)" class="star-btn">
+                      <button 
+                        type="button" 
+                        (click)="setRating(s)" 
+                        class="star-btn"
+                        [attr.aria-label]="s + ' star' + (s > 1 ? 's' : '')"
+                        [attr.aria-pressed]="reviewRating() >= s"
+                      >
                         <span class="material-symbols-outlined" [class.filled]="reviewRating() >= s">star</span>
                       </button>
                     }
@@ -170,7 +176,12 @@
                     name="reviewComment"
                     placeholder="What did you discover between the lines?"
                     rows="4"
+                    maxlength="1000"
                   ></textarea>
+                  <!-- Character Counter -->
+                  <div style="text-align:right; font-size:11px; color:#9ca3af; margin-top: 4px;">
+                    {{ reviewComment().length }}/1000
+                  </div>
 
                   @if (reviewError()) {
                     <div class="form-error-msg">

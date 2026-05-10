@@ -97,21 +97,54 @@ describe('BookListingsComponent', () => {
   });
 
   it('should handle price updates', () => {
-    component.updateMaxPrice({ target: { value: '500' } });
+    component.updateMaxPrice({ target: { value: '500' } } as any);
     expect(component.maxPrice()).toBe(500);
-
+ 
     // Invalid value should not change price
-    component.updateMaxPrice({ target: { value: 'abc' } });
+    component.updateMaxPrice({ target: { value: 'abc' } } as any);
     expect(component.maxPrice()).toBe(500);
-
-    component.updateMinPrice({});
+ 
+    component.updateMinPrice({} as any);
     expect(component.minPrice()).toBe(0);
   });
 
-  it('should set rating filter', () => {
+  it('should handle rating filter', () => {
     component.setRating(4);
     expect(component.minRating()).toBe(4);
     component.setRating(0);
     expect(component.minRating()).toBeNull();
+  });
+
+  describe('TrackBy and Helpers', () => {
+    it('should trackBy bookId', () => {
+      expect(component.trackByBookId(0, { bookId: 123 } as any)).toBe(123);
+    });
+
+    it('should trackBy genre', () => {
+      expect(component.trackByGenre(0, 'Fiction')).toBe('Fiction');
+    });
+
+    it('should trackBy value', () => {
+      expect(component.trackByValue(0, { value: 'test' })).toBe('test');
+      expect(component.trackByValue(0, 'simple')).toBe('simple');
+    });
+  });
+
+  describe('Document Click', () => {
+    it('should close sort dropdown when clicking outside', () => {
+      component.isSortOpen.set(true);
+      const event = { target: document.createElement('div') } as any;
+      component.onDocumentClick(event);
+      expect(component.isSortOpen()).toBe(false);
+    });
+
+    it('should NOT close sort dropdown when clicking inside', () => {
+      component.isSortOpen.set(true);
+      const div = document.createElement('div');
+      div.className = 'custom-sort';
+      const event = { target: div } as any;
+      component.onDocumentClick(event);
+      expect(component.isSortOpen()).toBe(true);
+    });
   });
 });

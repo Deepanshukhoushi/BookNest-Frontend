@@ -27,16 +27,18 @@
           <span class="currency-symbol">₹</span>
           <input 
             id="topUpAmount"
-            type="text" 
+            type="number" 
             formControlName="amount" 
             placeholder="Min. ₹100 · Max. ₹1,00,000"
-            inputmode="numeric"
+            min="100"
+            max="100000"
+            step="1"
             [class.invalid]="topUpForm.get('amount')?.invalid && topUpForm.get('amount')?.touched"
           >
         </div>
         <!-- Quick-select chips -->
         <div class="quick-amounts">
-          <button type="button" class="quick-chip" *ngFor="let a of quickAmounts"
+          <button type="button" class="quick-chip" *ngFor="let a of quickAmounts; trackBy: trackByValue"
             (click)="topUpForm.patchValue({ amount: a })">
             ₹{{ a | number }}
           </button>
@@ -45,7 +47,7 @@
           <span *ngIf="topUpForm.get('amount')?.errors?.['required']">Amount is required</span>
           <span *ngIf="topUpForm.get('amount')?.errors?.['min']">Minimum ₹100 required</span>
           <span *ngIf="topUpForm.get('amount')?.errors?.['max']">Maximum ₹100,000 allowed</span>
-          <span *ngIf="topUpForm.get('amount')?.errors?.['pattern']">Numeric values only</span>
+          <span *ngIf="topUpForm.get('amount')?.errors?.['pattern']">Please enter a whole number</span>
         </div>
       </div>
 

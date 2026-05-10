@@ -18,7 +18,7 @@
 .book-card-alt:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-  border-color: var(--color-primary-light);
+  border-color: var(--color-primary-hover);
 }
 
 /* Tag */
@@ -114,8 +114,12 @@
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-md);
-  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
   transform: translateY(10px) scale(0.85);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.2s ease,
+              background-color var(--transition-fast),
+              color var(--transition-fast);
   cursor: pointer;
   border: none;
 }
@@ -125,6 +129,7 @@
 }
 
 .book-card-alt:hover .action-btn {
+  opacity: 1;
   transform: translateY(0) scale(1);
 }
 
@@ -238,7 +243,7 @@
 }
 
 .star-icon.filled {
-  color: #7f1635;
+  color: var(--color-star);
   font-variation-settings: 'FILL' 1;
 }
 
@@ -284,7 +289,7 @@
 
 .book-card-alt:hover .card-edition {
   background-color: var(--neutral-100);
-  border-color: var(--color-primary-light);
+  border-color: var(--color-primary-hover);
   color: var(--color-primary);
 }
 
@@ -304,10 +309,10 @@
   transition-delay: 0ms;
 }
 .book-card-alt:hover .action-btn:nth-child(2) {
-  transition-delay: 40ms;
+  transition-delay: 50ms;
 }
 .book-card-alt:hover .action-btn:nth-child(3) {
-  transition-delay: 80ms;
+  transition-delay: 100ms;
 }
 
 /* Card active press */
@@ -342,7 +347,6 @@
 }
 
 /* Rating star size */
-.star-icon.filled { color: #c4841d !important; }
 .rating-val { font-size: 10px !important; }
 /* 3D scale-up hover */
 .book-card-alt {

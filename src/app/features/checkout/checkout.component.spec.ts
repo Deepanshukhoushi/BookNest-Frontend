@@ -9,6 +9,7 @@ import { CouponService } from '../../core/services/coupon.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { signal } from '@angular/core';
+import { Address } from '../../shared/models/models';
 
 describe('CheckoutComponent', () => {
   let component: CheckoutComponent;
@@ -34,7 +35,7 @@ describe('CheckoutComponent', () => {
     };
     cartServiceSpy = {
       clearCart: vi.fn().mockReturnValue(of({} as any)),
-      cart: signal({ items: [], totalPrice: 1000 })
+      cart: signal({ items: [{ bookId: 1, bookTitle: 'Test' }], totalPrice: 1000 })
     };
     notificationServiceSpy = {
       success: vi.fn(),
@@ -92,12 +93,13 @@ describe('CheckoutComponent', () => {
 
     component.addressForm.pincode = '123'; // Invalid pincode
     component.updateAddressErrors();
-    expect(component.addressErrors()['pincode']).toBe('Pincode must be exactly 6 digits.');
+    expect(component.addressErrors()['pincode']).toBe('Enter a valid 6-digit Indian pincode.');
   });
 
   it('should handle address selection', () => {
-    const address = {
+    const address: Address = {
       addressId: 1,
+      customerId: 1,
       fullName: 'John Doe',
       mobileNumber: '1234567890',
       flatNumber: '123 St',
@@ -339,5 +341,47 @@ describe('CheckoutComponent', () => {
     });
     expect(cartServiceSpy.clearCart).toHaveBeenCalled();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
+  it('should handle online payment initiation error', () => {
+    orderServiceSpy.initiatePayment.mockReturnValueOnce(throwError(() => ({ error: { message: 'Network error' } })));
+    component.paymentMethod.set('ONLINE');
+    component.selectedAddressId.set(1);
+    component.addressForm = {
+      fullName: 'John Doe',
+      phone: '1234567890',
+      street: '123 St',
+      city: 'City',
+      state: 'State',
+      pincode: '123456'
+    };
+    
+    component.confirmOrder();
+    
+    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Network error');
+    expect(component.isProcessing()).toBe(false);
+  });
+
+  it('should handle payment verification error', () => {
+    const response = { razorpay_order_id: 'o1', razorpay_payment_id: 'p1', razorpay_signature: 's1' };
+    orderServiceSpy.verifyPayment.mockReturnValueOnce(throwError(() => ({ error: { message: 'Signature mismatch' } })));
+    
+    (component as any).verifyAndFinalizeOnlineOrder(1, response);
+
+    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Signature mismatch');
+    expect(component.isProcessing()).toBe(false);
+  });
+
+  it('should prevent checkout if total is zero or negative', () => {
+    cartServiceSpy.cart.set({ items: [], totalPrice: 0 });
+    component.confirmOrder();
+    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Your archives are empty. Please add items before checking out.');
+  });
+
+  it('should prevent checkout if no address is selected', () => {
+    cartServiceSpy.cart.set({ items: [{ bookId: 1 }], totalPrice: 100 });
+    component.selectedAddressId.set(null);
+    component.confirmOrder();
+    expect(notificationServiceSpy.error).toHaveBeenCalledWith('Missing shipping information.');
   });
 });

@@ -16,7 +16,7 @@ import { Book } from '../../shared/models/models';
       </header>
 
       <div class="featured-grid" *ngIf="!loading(); else loadingState">
-        <div *ngFor="let book of featuredBooks()" class="edition-card glass-card" [routerLink]="['/book', book.bookId]">
+        <div *ngFor="let book of featuredBooks()" class="edition-card card card--glass" [routerLink]="['/book', book.bookId]">
           <div class="card-image">
             <img [src]="book.coverImageUrl || 'assets/images/book-placeholder.jpg'" [alt]="book.title">
             <div class="edition-badge">Collector's Choice</div>
@@ -55,7 +55,7 @@ import { Book } from '../../shared/models/models';
     .premium-title {
       font-size: 3.5rem;
       font-weight: 700;
-      background: linear-gradient(135deg, var(--text-primary), var(--color-accent));
+      background: linear-gradient(135deg, var(--text-primary), var(--color-primary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 1rem;
@@ -82,7 +82,7 @@ import { Book } from '../../shared/models/models';
     .edition-card:hover {
       transform: translateY(-10px);
       box-shadow: var(--shadow-lg);
-      border-color: var(--color-primary-light);
+      border-color: var(--color-primary-hover);
     }
     .card-image {
       position: relative;
@@ -142,18 +142,26 @@ import { Book } from '../../shared/models/models';
     }
     .view-btn {
       margin-top: auto;
-      padding: 1rem;
-      border: 1px solid var(--color-primary);
-      background: transparent;
-      color: var(--color-primary);
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-    .edition-card:hover .view-btn {
+      padding: 0.85rem;
+      border: none;
       background: var(--color-primary);
       color: white;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+    .view-btn:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .view-btn:active {
+      transform: translateY(0);
     }
     .loading-shimmer {
       display: grid;

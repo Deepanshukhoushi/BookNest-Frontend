@@ -11,7 +11,8 @@
         <span class="italic">Discerning Reader.</span>
       </h1>
       <p class="hero-description">
-        Step into a digital library carefully assembled for those who appreciate the weight of a good book. Rare editions, modern classics, and undiscovered voices.
+        Step into a digital library carefully assembled for those who appreciate the weight of a good book. Rare
+        editions, modern classics, and undiscovered voices.
       </p>
       <div class="hero-actions">
         <button class="primary-btn" routerLink="/books">
@@ -22,12 +23,11 @@
         </a>
       </div>
     </div>
-    
+
     <div class="hero-image-wrapper">
       <div class="hero-image-bg"></div>
-      <img loading="eager" fetchpriority="high" src="/booknest-home-image.png"
-         alt="Curated Library" 
-         class="hero-image">
+      <img loading="eager" fetchpriority="high" src="/assets/images/booknest-home-image.png" alt="Curated Library"
+        class="hero-image">
     </div>
   </section>
 
@@ -35,14 +35,22 @@
   <section class="category-strip max-width-container">
     <p class="strip-label">Browse by genre</p>
     <div class="category-chips">
-      <a routerLink="/books" [queryParams]="{genre:'Fiction'}"        class="category-chip">Fiction</a>
-      <a routerLink="/books" [queryParams]="{genre:'Non-Fiction'}"    class="category-chip">Non-Fiction</a>
-      <a routerLink="/books" [queryParams]="{genre:'Science'}"        class="category-chip">Science</a>
-      <a routerLink="/books" [queryParams]="{genre:'Philosophy'}"     class="category-chip">Philosophy</a>
-      <a routerLink="/books" [queryParams]="{genre:'Biography'}"      class="category-chip">Biography</a>
-      <a routerLink="/books" [queryParams]="{genre:'History'}"        class="category-chip">History</a>
-      <a routerLink="/books" [queryParams]="{genre:'Mystery'}"        class="category-chip">Mystery</a>
-      <a routerLink="/books" [queryParams]="{genre:'Self-Help'}"      class="category-chip">Self-Help</a>
+      <a routerLink="/books" [queryParams]="{genre:'Fiction'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Fiction</a>
+      <a routerLink="/books" [queryParams]="{genre:'Non-Fiction'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Non-Fiction</a>
+      <a routerLink="/books" [queryParams]="{genre:'Science'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Science</a>
+      <a routerLink="/books" [queryParams]="{genre:'Philosophy'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Philosophy</a>
+      <a routerLink="/books" [queryParams]="{genre:'Biography'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Biography</a>
+      <a routerLink="/books" [queryParams]="{genre:'History'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">History</a>
+      <a routerLink="/books" [queryParams]="{genre:'Mystery'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Mystery</a>
+      <a routerLink="/books" [queryParams]="{genre:'Self-Help'}" routerLinkActive="chip-active"
+        [routerLinkActiveOptions]="{queryParams: 'exact'}" class="category-chip">Self-Help</a>
     </div>
   </section>
 
@@ -54,36 +62,27 @@
         View All <span class="material-symbols-outlined" style="font-size:1rem">arrow_forward</span>
       </a>
     </div>
-    
-    @if (loading()) {
-      <!-- Skeleton Grid -->
-      <div class="skeleton-grid">
-        @for (s of [1,2,3,4,5]; track s) {
-          <div class="skeleton-book-card">
-            <div class="skeleton-book-img"></div>
-            <div class="skeleton-text full"></div>
-            <div class="skeleton-text short"></div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="book-grid">
-        @for (book of trendingBooks(); track book.bookId) {
-          <app-book-card
-            [bookId]="book.bookId"
-            [title]="book.title"
-            [author]="book.author"
-            [price]="book.price"
-            [imageUrl]="book.coverImageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuDT6tIwD8ZcOoyE-ksOMIL0EwAiUEnyteqONnPUGlZfhJnxcm51yPktvdIsH4NpdGVASXAYalY15XvvcOjM0hMfNHJhgBSGwfv6hNTDRV-K2tLEiTJdAz64feVH1apo9IxfpL8_bOUdg90SMg3j9Q6VWgPWCMWcdUMt7jKkU4XzXiG3Yu9lSKpNjfF3NeK_V5a2GSoRCkZU-RSof-IdUCOdP6i790aklA2oJKVRw3MMoYuHkXGkndKSSQPLbTbNrJiMhlCcYZNBneM'"
-            [rating]="book.rating || 0"
-            [reviewCount]="book.rating ? 50 : 0"
-            [tag]="book.stock > 0 && book.stock < 10 ? 'Limited' : ''"
-            [stock]="book.stock"
 
-            [routerLink]="['/book', book.bookId]"
-          ></app-book-card>
-        }
+    @if (loading()) {
+    <!-- Skeleton Grid -->
+    <div class="skeleton-grid">
+      @for (s of [1,2,3,4,5]; track s) {
+      <div class="skeleton-book-card">
+        <div class="skeleton-book-img"></div>
+        <div class="skeleton-text full"></div>
+        <div class="skeleton-text short"></div>
       </div>
+      }
+    </div>
+    } @else {
+    <div class="book-grid">
+      @for (book of trendingBooks(); track book.bookId) {
+      <app-book-card [bookId]="book.bookId" [title]="book.title" [author]="book.author" [price]="book.price"
+        [imageUrl]="book.coverImageUrl || '/assets/images/booknest-home-image.png'" [rating]="book.rating || 0"
+        [reviewCount]="book.rating ? 50 : 0" [tag]="book.stock > 0 && book.stock < 10 ? 'Limited' : ''"
+        [stock]="book.stock" [routerLink]="['/book', book.bookId]"></app-book-card>
+      }
+    </div>
     }
   </section>
 </main>

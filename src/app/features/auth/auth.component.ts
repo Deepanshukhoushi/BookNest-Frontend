@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -30,7 +30,7 @@ interface ResetPasswordPayload {
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css'
 })
-export class AuthComponent implements OnInit {
+export class AuthComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -46,6 +46,10 @@ export class AuthComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    if (this.otpInterval) clearInterval(this.otpInterval);
+  }
+
   authMode = signal<AuthMode>('login');
   loading = signal(false);
   error = signal('');
@@ -55,19 +59,66 @@ export class AuthComponent implements OnInit {
   authData = {
     fullName: '',
     email: '',
-    password: '',
-    confirmPassword: '',
+    password: signal(''),
+    confirmPassword: signal(''),
     mobile: ''
   };
 
   resetData = {
     email: '',
     otp: '',
-    newPassword: '',
-    confirmPassword: ''
+    newPassword: signal(''),
+    confirmPassword: signal('')
   };
 
   isLogin = computed(() => this.authMode() === 'login');
+
+  passwordStrength = computed(() => {
+    const p = this.authData.password();
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p)) score++;
+    return score; // 0–4
+  });
+
+  strengthLabel = computed(() =>
+    ['', 'Weak', 'Fair', 'Good', 'Strong'][this.passwordStrength()]
+  );
+
+  strengthColor = computed(() => {
+    const s = this.passwordStrength();
+    if (s <= 1) return '#ef4444'; // red-500
+    if (s === 2) return '#f59e0b'; // amber-500
+    if (s === 3) return '#10b981'; // emerald-500
+    return '#3b82f6'; // blue-500
+  });
+
+  otpExpiry = signal(0);
+  otpTimerLabel = computed(() => {
+    const m = Math.floor(this.otpExpiry() / 60);
+    const s = this.otpExpiry() % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  });
+
+  canResend = computed(() => this.otpExpiry() > 0 && this.otpExpiry() <= 540); // 60s elapsed
+
+  private otpInterval?: ReturnType<typeof setInterval>;
+
+  private startOtpTimer() {
+    if (this.otpInterval) clearInterval(this.otpInterval);
+    this.otpExpiry.set(600); // 10 minutes
+    this.otpInterval = setInterval(() => {
+      this.otpExpiry.update(v => {
+        if (v <= 1) {
+          if (this.otpInterval) clearInterval(this.otpInterval);
+          return 0;
+        }
+        return v - 1;
+      });
+    }, 1000);
+  }
 
   // Sets the current authentication view (login, register, etc.) and clears alerts
   setMode(mode: AuthMode) {
@@ -84,37 +135,16 @@ export class AuthComponent implements OnInit {
   // Handles the main form submission for authenticating or creating a new account
   onSubmit() {
     this.error.set('');
-
-    // Client-side validation for registration mode
-    if (this.authMode() === 'register') {
-      if (!this.authData.fullName || this.authData.fullName.trim().length < 2) {
-        this.error.set('Full name must be at least 2 characters.');
-        return;
-      }
-      if (this.authData.password.length < 8) {
-        this.error.set('Password must be at least 8 characters.');
-        return;
-      }
-      if (this.authData.password !== this.authData.confirmPassword) {
-        this.error.set('Passwords do not match. Please try again.');
-        return;
-      }
-      if (!this.authData.email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(this.authData.email)) {
-        this.error.set('Please enter a valid email address.');
-        return;
-      }
-      if (this.authData.mobile && !/^[6-9][0-9]{9}$/.test(this.authData.mobile)) {
-        this.error.set('Mobile number must be 10 digits and start with 6-9.');
-        return;
-      }
+    const validationError = this.getSubmitValidationError();
+    if (validationError) {
+      this.error.set(validationError);
+      return;
     }
 
     this.loading.set(true);
     this.message.set('');
 
-    const action: Observable<any> = this.isLogin() 
-      ? this.authService.login({ email: this.authData.email, password: this.authData.password })
-      : this.authService.register(this.authData);
+    const action = this.buildSubmitAction();
 
     action.subscribe({
       next: () => {
@@ -128,23 +158,9 @@ export class AuthComponent implements OnInit {
           this.message.set('Registration successful! You can now access the library.');
         }
       },
-      error: (err: any) => {
+      error: (err: { error?: { message?: string } }) => {
         this.loading.set(false);
-        const backendMessage = err.error?.message;
-        
-        // Map technical messages to user-friendly ones
-        const messageMap: Record<string, string> = {
-          'Invalid credentials': 'The email or password you entered is incorrect. Please try again.',
-          'User already exists': 'An account with this email address already exists.',
-          'An account with this email address already exists': 'An account with this email address already exists.',
-          'Bad Request': 'One or more fields are invalid. Please check your input.'
-        };
-
-        const userMessage = (backendMessage && messageMap[backendMessage]) 
-          || backendMessage 
-          || 'Authentication failed. Please verify your credentials.';
-
-        this.error.set(userMessage);
+        this.error.set(this.getAuthErrorMessage(err?.error?.message));
       }
     });
   }
@@ -166,6 +182,7 @@ export class AuthComponent implements OnInit {
       next: (res) => {
         this.loading.set(false);
         this.setMode('reset');
+        this.startOtpTimer();
         this.message.set(res.message || 'Verification code dispatched to your inbox.');
       },
       error: (err) => {
@@ -177,15 +194,15 @@ export class AuthComponent implements OnInit {
 
   // Finalizes the password reset process using the verification code and new password
   onResetPassword() {
-    if (this.resetData.newPassword.length < 8) {
+    if (this.resetData.newPassword().length < 8) {
       this.error.set('New password must be at least 8 characters.');
       return;
     }
-    if (this.resetData.newPassword !== this.resetData.confirmPassword) {
+    if (this.resetData.newPassword() !== this.resetData.confirmPassword()) {
       this.error.set('Security keys do not match.');
       return;
     }
-    if (!/^[0-9]{6}$/.test(this.resetData.otp)) {
+    if (!/^\d{6}$/.test(this.resetData.otp)) {
       this.error.set('Verification code must be a 6-digit number.');
       return;
     }
@@ -196,7 +213,7 @@ export class AuthComponent implements OnInit {
     const payload: ResetPasswordPayload = {
       email: this.resetData.email,
       otp: this.resetData.otp,
-      newPassword: this.resetData.newPassword
+      newPassword: this.resetData.newPassword()
     };
 
     this.authService.resetPassword(payload).subscribe({
@@ -215,12 +232,80 @@ export class AuthComponent implements OnInit {
   // Initiates the Google OAuth2 authentication flow via the API gateway
   loginWithGoogle() {
     const gatewayBase = environment.apiBaseUrl.replace('/api/v1', '');
-    window.location.href = `${gatewayBase}/oauth2/authorization/google`;
+    globalThis.location.href = `${gatewayBase}/oauth2/authorization/google`;
   }
 
   // Initiates the GitHub OAuth2 authentication flow via the API gateway
   loginWithGithub() {
     const gatewayBase = environment.apiBaseUrl.replace('/api/v1', '');
-    window.location.href = `${gatewayBase}/oauth2/authorization/github`;
+    globalThis.location.href = `${gatewayBase}/oauth2/authorization/github`;
+  }
+
+  private getSubmitValidationError(): string | null {
+    return this.isLogin() ? this.validateLoginForm() : this.validateRegistrationForm();
+  }
+
+  private validateLoginForm(): string | null {
+    if (!this.authData.email.trim()) {
+      return 'Please enter your email address.';
+    }
+    if (!this.isValidEmail(this.authData.email)) {
+      return 'Please enter a valid email address.';
+    }
+    if (!this.authData.password()) {
+      return 'Please enter your password.';
+    }
+    return null;
+  }
+
+  private validateRegistrationForm(): string | null {
+    if (!this.authData.fullName || this.authData.fullName.trim().length < 2) {
+      return 'Full name must be at least 2 characters.';
+    }
+    if (this.passwordStrength() < 3) {
+      return 'Password is too weak. Please use uppercase, numbers, and special characters.';
+    }
+    if (this.authData.password() !== this.authData.confirmPassword()) {
+      return 'Passwords do not match. Please try again.';
+    }
+    if (!this.isValidEmail(this.authData.email)) {
+      return 'Please enter a valid email address.';
+    }
+    if (this.authData.mobile && !/^[6-9]\d{9}$/.test(this.authData.mobile)) {
+      return 'Mobile number must be 10 digits and start with 6-9.';
+    }
+    return null;
+  }
+
+  private buildSubmitAction(): Observable<unknown> {
+    if (this.isLogin()) {
+      return this.authService.login({
+        email: this.authData.email,
+        password: this.authData.password()
+      });
+    }
+
+    return this.authService.register({
+      ...this.authData,
+      password: this.authData.password(),
+      confirmPassword: this.authData.confirmPassword()
+    });
+  }
+
+  private isValidEmail(email: string): boolean {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+  }
+
+  private getAuthErrorMessage(backendMessage?: string): string {
+    const messageMap: Record<string, string> = {
+      'Invalid credentials': 'The email or password you entered is incorrect. Please try again.',
+      'User already exists': 'An account with this email address already exists.',
+      'An account with this email address already exists': 'An account with this email address already exists.',
+      'Bad Request': 'One or more fields are invalid. Please check your input.'
+    };
+
+    return (backendMessage && messageMap[backendMessage])
+      || backendMessage
+      || 'Authentication failed. Please verify your credentials.';
   }
 }

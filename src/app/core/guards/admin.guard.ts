@@ -24,7 +24,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  console.warn(`[AdminGuard] Access denied for role: ${role}. Redirecting to home.`);
+
   router.navigate(['/'], { replaceUrl: true });
   return false;
 };

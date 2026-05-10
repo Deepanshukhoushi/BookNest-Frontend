@@ -4,14 +4,8 @@
 :root {
   /* Color Palette - Lavender Blush & Claret */
   --color-primary: #7f1635;
-  --color-primary-light: #9a1c45;
+  --color-primary-hover: #9a1c45;
   --color-primary-dark: #5e0e26;
-  
-  --color-secondary: #9a1c45;
-  --color-secondary-light: #b32a58;
-  
-  --color-accent: #7f1635; 
-  --color-accent-light: #9a1c45;
   
   --color-background: #fff0f5; /* Lavender Blush */
   --color-surface: #ffffff;
@@ -38,6 +32,7 @@
   --color-success: #2d6a4f; /* Soft green */
   --color-error: #c94c4c;   /* Soft red */
   --color-warning: #d4a373;
+  --color-star: var(--color-warning);
 
   /* Spacing Scale */
   --space-unit: 4px;
@@ -82,10 +77,64 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
+  /* Glassmorphism Defaults (Light) */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-shadow: rgba(127, 22, 53, 0.08);
+
   /* Motion */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 280ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background: #0f0507; /* Deeper background */
+    --color-surface:    #1a0a0e; /* Slightly lighter surface */
+    --border-color:     #3d1421;
+
+    --text-primary:     #f8f0f3;
+    --text-secondary:   #d9bfc9;
+    --text-muted:       #a67387;
+
+    --neutral-50:  #1a0a0e;
+    --neutral-100: #2a1219;
+    --neutral-200: #3d1421;
+    
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.7);
+
+    /* Glassmorphism Overrides (Dark) */
+    --glass-bg: rgba(26, 10, 14, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root.dark {
+  --color-background: #0f0507;
+  --color-surface:    #1a0a0e;
+  --border-color:     #3d1421;
+
+  --text-primary:     #f8f0f3;
+  --text-secondary:   #d9bfc9;
+  --text-muted:       #a67387;
+
+  --neutral-50:  #1a0a0e;
+  --neutral-100: #2a1219;
+  --neutral-200: #3d1421;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.7);
+
+  /* Glassmorphism Overrides (Dark) */
+  --glass-bg: rgba(26, 10, 14, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.5);
 }
 .sr-only {
   position: absolute;
@@ -212,7 +261,7 @@ img {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -394,29 +443,33 @@ img {
 /* ============================
    Utility Classes
    ============================ */
-.text-accent { color: var(--color-accent); }
+.text-accent { color: var(--color-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
 .font-headline { font-family: var(--font-headline); }
 
-.glass-card {
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  padding: var(--space-lg);
+}
+
+.card--elevated {
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.card--elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card--glass {
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--radius-lg);
-}
-
-.elevated-card {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  transition: var(--transition-base);
-}
-
-.elevated-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
 }
 
 /* ============================
@@ -526,21 +579,21 @@ img {
 }
 
 /* ============================================================
-   PRODUCTION POLISH ï¿½ Global Enhancement Layer
+   PRODUCTION POLISH - Global Enhancement Layer
    ============================================================ */
 
 /* Selection Color */
 ::selection {
-  background: #add8e6; /* Light Blue */
-  color: #002244; /* Dark blue for readability */
+  background: rgba(127, 22, 53, 0.15);
+  color: #5e0e26;
 }
 
 ::-moz-selection {
-  background: #add8e6;
-  color: #002244;
+  background: rgba(127, 22, 53, 0.15);
+  color: #5e0e26;
 }
 
-/* Keyboard-accessible focus ring ï¿½ all interactive elements */
+/* Keyboard-accessible focus ring - all interactive elements */
 :focus-visible {
   outline: 2.5px solid var(--color-primary);
   outline-offset: 3px;
@@ -631,7 +684,7 @@ label {
   letter-spacing: 0.01em;
 }
 
-/* -- Bare input baseline â€” :where() keeps specificity=0 so component CSS always wins -- */
+/* -- Bare input baseline - :where() keeps specificity=0 so component CSS always wins -- */
 :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"])),
 :where(select),
 :where(textarea) {

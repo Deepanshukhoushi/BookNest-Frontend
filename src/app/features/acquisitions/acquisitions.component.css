@@ -32,7 +32,7 @@
 
 .order-card:hover {
   box-shadow: var(--shadow-lg);
-  border-color: var(--color-primary-light);
+  border-color: var(--color-primary-hover);
 }
 
 .order-top {

@@ -15,7 +15,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let order of orders()">
+      <tr *ngFor="let order of orders(); trackBy: trackByOrderId">
         <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">#{{ order.orderId }}</td>
         <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">{{ order.amount | currency:'INR' }}</td>
         <td style="padding: 0.5rem; border-bottom: 1px solid #f2f2f2;">{{ order.paymentMethod }}</td>

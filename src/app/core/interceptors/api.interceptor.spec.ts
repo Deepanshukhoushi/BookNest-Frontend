@@ -12,12 +12,15 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter } from '@angular/router';
 import { Router } from '@angular/router';
 import { NotificationService } from '../services/notification.service';
+import { AuthService } from '../services/auth.service';
 import { apiInterceptor } from './api.interceptor';
+import { throwError, of } from 'rxjs';
 
 describe('apiInterceptor', () => {
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
   let notificationServiceSpy: any;
+  let authServiceSpy: any;
   let router: Router;
 
   beforeEach(async () => {
@@ -25,13 +28,18 @@ describe('apiInterceptor', () => {
       success: vi.fn(),
       error: vi.fn()
     };
+    authServiceSpy = {
+      refresh: vi.fn().mockReturnValue(throwError(() => new Error('Refresh failed')))
+    };
 
+    TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         provideHttpClient(withInterceptors([apiInterceptor])),
         provideHttpClientTesting(),
-        { provide: NotificationService, useValue: notificationServiceSpy }
+        { provide: NotificationService, useValue: notificationServiceSpy },
+        { provide: AuthService, useValue: authServiceSpy }
       ]
     }).compileComponents();
 

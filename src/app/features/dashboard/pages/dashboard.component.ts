@@ -1,8 +1,8 @@
-import { Component, inject, OnInit, OnDestroy, signal, computed, effect } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subscription, forkJoin, catchError, of } from 'rxjs';
+import { forkJoin, catchError, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { OrderService } from '../../../core/services/order.service';
 import { WalletService } from '../../../core/services/wallet.service';
@@ -25,20 +25,18 @@ type DashboardTab = 'identity' | 'acquisitions' | 'wishlist' | 'funds' | 'settin
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, TopUpModalComponent, ProfileModalComponent, OrderTimelineComponent, BookCardComponent, ConfirmModalComponent],
+  imports: [CommonModule, RouterLink, FormsModule, TopUpModalComponent, ProfileModalComponent, OrderTimelineComponent, BookCardComponent, ConfirmModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private orderService = inject(OrderService);
   private walletService = inject(WalletService);
   private wishlistService = inject(WishlistService);
   private bookService = inject(BookService);
   private notificationService = inject(NotificationService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private queryParamsSub?: Subscription;
+  private readonly router = inject(Router);
 
   user = this.authService.currentUser;
   loading = signal(true);
@@ -96,7 +94,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       return {
         name: 'Member',
         membership: 'Member',
-        joinedDate: 'Recently',
+        joinedDate: new Date().toISOString(),
         location: 'Digital Library',
         avatar: 'https://api.dicebear.com/7.x/initials/svg?seed=User'
       };
@@ -133,7 +131,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         wishlist: this.wishlistService.fetchWishlist(currentUser.userId).pipe(catchError(() => of(null))),
         wallet: this.walletService.fetchWalletByUserId(currentUser.userId).pipe(catchError(() => of(null)))
       }).subscribe({
-        next: (data: any) => {
+        next: (data: { orders: Order[], addresses: Address[], wishlist: { items: WishlistItem[] } | null, wallet: { walletId: number, userId: number } | null }) => {
           this.orders.set(data.orders);
           this.addresses.set(data.addresses);
           this.wishlistItems.set(data.wishlist?.items || []);
@@ -149,11 +147,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } else {
       this.loading.set(false);
     }
-  }
-
-  // Unsubscribes from route query params to prevent memory leaks
-  ngOnDestroy() {
-    this.queryParamsSub?.unsubscribe();
   }
 
   // Fetches the last few wallet transactions to display on the funds tab
@@ -525,5 +518,29 @@ export class DashboardComponent implements OnInit, OnDestroy {
       },
       error: () => this.notificationService.error('Failed to generate PDF invoice.')
     });
+  }
+
+  trackByOrderId(_: number, item: Order): number {
+    return item.orderId;
+  }
+
+  trackByItemId(_: number, item: WishlistItem): number {
+    return item.itemId;
+  }
+
+  trackByStatementId(_: number, item: Statement): number {
+    return item.statementId;
+  }
+
+  trackByBookId(_: number, item: Book): number {
+    return item.bookId;
+  }
+
+  trackByAddressId(_: number, item: Address): number {
+    return item.addressId || 0;
+  }
+
+  trackByValue<T>(_: number, value: T): T {
+    return value;
   }
 }

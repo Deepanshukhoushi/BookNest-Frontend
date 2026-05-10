@@ -44,6 +44,10 @@
     
     <!-- Icon Actions -->
     <div class="icon-actions">
+      <!-- Dark Mode Toggle -->
+      <button class="icon-btn theme-toggle" (click)="toggleDarkMode()" [title]="isDarkMode() ? 'Light Mode' : 'Dark Mode'">
+        <span class="material-symbols-outlined">{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
+      </button>
 
       <!-- Cart -->
       <button class="icon-btn" routerLink="/cart" title="Cart">
@@ -135,7 +139,12 @@
 
 <!-- Mobile Navigation Drawer -->
 @if (showMobileMenu()) {
-  <div class="mobile-nav-overlay open" (click)="toggleMobileMenu()" (keydown.escape)="toggleMobileMenu()">
+  <div
+    class="mobile-nav-overlay open"
+    (click)="toggleMobileMenu()"
+    (keydown.enter)="toggleMobileMenu()"
+    (keydown.space)="toggleMobileMenu()"
+    (keydown.escape)="toggleMobileMenu()">
     <dialog class="mobile-nav-drawer" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()" open aria-label="Mobile Navigation">
       <div class="drawer-header">
         <app-logo size="1.25rem"></app-logo>

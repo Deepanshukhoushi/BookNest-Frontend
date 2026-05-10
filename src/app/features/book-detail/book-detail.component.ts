@@ -163,8 +163,17 @@ export class BookDetailComponent implements OnInit, OnDestroy {
       this.reviewError.set('Please select a star rating.');
       return;
     }
-    if (!this.reviewComment().trim()) {
-      this.reviewError.set('Please share a few words about your experience.');
+    const comment = this.reviewComment().trim();
+    if (!comment) {
+      this.reviewError.set('Please share your thoughts about this book.');
+      return;
+    }
+    if (comment.length < 10) {
+      this.reviewError.set('Review must be at least 10 characters.');
+      return;
+    }
+    if (comment.length > 1000) {
+      this.reviewError.set('Review cannot exceed 1000 characters.');
       return;
     }
 
@@ -172,7 +181,8 @@ export class BookDetailComponent implements OnInit, OnDestroy {
       bookId: book.bookId,
       userId: user.userId,
       rating: this.reviewRating(),
-      comment: this.reviewComment().trim()
+      comment: comment,
+      reviewerName: user.fullName
     };
 
     this.reviewLoading.set(true);
@@ -254,7 +264,7 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     if (currentUser && review.userId === currentUser.userId) {
       return currentUser.fullName + ' (You)';
     }
-    return 'Verified Member';
+    return review.reviewerName || 'Verified Member';
   }
 
   // Verifies if the book is currently present in the user's wishlist
@@ -364,7 +374,10 @@ export class BookDetailComponent implements OnInit, OnDestroy {
     return url;
   }
 
-  onImageError(event: any) {
-    event.target.src = '/assets/images/book-fallback.svg';
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.src = '/assets/images/book-fallback.svg';
+    }
   }
 }

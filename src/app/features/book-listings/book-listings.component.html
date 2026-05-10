@@ -1,8 +1,15 @@
+<!-- Filter Backdrop -->
+<button type="button" class="filter-backdrop" [class.active]="sidebarOpen()" (click)="sidebarOpen.set(false)" aria-label="Close filters"></button>
+
 <div class="listings-container">
+
   <!-- Filter Sidebar -->
-  <aside class="filter-sidebar">
+  <aside class="filter-sidebar" [class.open]="sidebarOpen()">
     <div class="sidebar-header">
       <h2 class="sidebar-title">Refine</h2>
+      <button class="close-sidebar-btn" (click)="sidebarOpen.set(false)">
+        <span class="material-symbols-outlined">close</span>
+      </button>
       <button class="clear-all-link" (click)="clearAllFilters()" *ngIf="hasActiveFilters()">Clear All</button>
     </div>
 
@@ -37,7 +44,7 @@
       <div class="genre-list">
         <label 
           class="filter-row" 
-          *ngFor="let genre of displayedGenres()"
+          *ngFor="let genre of displayedGenres(); trackBy: trackByGenre"
           [class.active]="selectedGenre() === genre"
         >
           <div class="custom-checkbox">
@@ -62,7 +69,7 @@
       <div class="rating-filter-container">
         <div class="star-row">
           <button 
-            *ngFor="let star of [1,2,3,4,5]" 
+            *ngFor="let star of [1,2,3,4,5]; trackBy: trackByValue" 
             type="button"
             class="star-icon-btn"
             [class.filled]="(minRating() || 0) >= star"
@@ -88,24 +95,32 @@
         <p *ngIf="totalElements() > 0">Showing {{ showingStart() }}–{{ showingEnd() }} of {{ totalElements() }} editions</p>
         <p *ngIf="totalElements() === 0 && !loading()">No editions match your selection.</p>
       </div>
-      <div class="custom-sort">
-        <span class="sort-prefix">Sort:</span>
-        <div class="dropdown-container">
-          <button class="dropdown-trigger" (click)="toggleSort()">
-            <span class="current-value">{{ currentSortLabel() }}</span>
-            <span class="material-symbols-outlined expand-icon" [style.transform]="isSortOpen() ? 'rotate(180deg)' : 'none'">expand_more</span>
-          </button>
-          
-          <div class="dropdown-menu" *ngIf="isSortOpen()">
-            <button 
-              *ngFor="let option of sortOptions" 
-              class="dropdown-item" 
-              [class.active]="sortBy() === option.value"
-              (click)="selectSort(option)"
-            >
-              {{ option.label }}
-              <span class="material-symbols-outlined check-icon" *ngIf="sortBy() === option.value">check</span>
+      <div class="header-actions">
+        <button class="filter-toggle-btn" (click)="sidebarOpen.set(true)">
+          <span class="material-symbols-outlined">tune</span>
+          Filters
+          <span *ngIf="hasActiveFilters()" class="filter-badge">{{ activeFilterCount() }}</span>
+        </button>
+
+        <div class="custom-sort">
+          <span class="sort-prefix">Sort:</span>
+          <div class="dropdown-container">
+            <button class="dropdown-trigger" (click)="toggleSort()">
+              <span class="current-value">{{ currentSortLabel() }}</span>
+              <span class="material-symbols-outlined expand-icon" [style.transform]="isSortOpen() ? 'rotate(180deg)' : 'none'">expand_more</span>
             </button>
+            
+            <div class="dropdown-menu" *ngIf="isSortOpen()">
+              <button 
+                *ngFor="let option of sortOptions; trackBy: trackByValue" 
+                class="dropdown-item" 
+                [class.active]="sortBy() === option.value"
+                (click)="selectSort(option)"
+              >
+                {{ option.label }}
+                <span class="material-symbols-outlined check-icon" *ngIf="sortBy() === option.value">check</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -127,12 +142,12 @@
     <!-- Book Grid -->
     <div class="book-grid stagger-grid" *ngIf="!loading()">
       <app-book-card 
-        *ngFor="let book of books()" 
+        *ngFor="let book of books(); trackBy: trackByBookId" 
         [bookId]="book.bookId"
         [title]="book.title"
         [author]="book.author"
         [price]="book.price.toString()"
-        [imageUrl]="book.coverImageUrl || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCQt6DSXLCSlx_dMm-mTTLkGiMYDyH8ZjVMVAOJ04QEokNsCQiJpKmi-my5tG2SKaErowY7x6XnNUf5wCsaKNo54sKiXBZIDCKrfyW7kCMCfHbwF571eNkMP5TO5L6CMJ3Ce1UEVrOOr69Zz7unvNeAXFeB8sfmRW2Q8pWdzdun2q6hNnqIiNniWf1OZzjuVaQ94jLLuC1_tY2ETu__12RpIOjBxqT6_2-4EFQQ1EAGgC_bAyYPn6sgMiU03dpIHeztIs1A98_qDS0'"
+        [imageUrl]="book.coverImageUrl || '/assets/images/book-placeholder.svg'"
         [rating]="book.rating || 0"
         [category]="book.genre"
         [tag]="book.stock > 0 && book.stock < 5 ? 'Limited' : ''"
@@ -154,7 +169,7 @@
       </button>
 
       <button 
-        *ngFor="let p of pages()" 
+        *ngFor="let p of pages(); trackBy: trackByValue" 
         class="page-btn" 
         [class.active]="currentPage() === p"
         (click)="onPageChange(p)"
@@ -170,4 +185,15 @@
       </button>
     </div>
   </main>
+
+  <!-- Back to Top Button -->
+  <button 
+    class="back-to-top" 
+    *ngIf="showBackToTop()" 
+    (click)="scrollToTop()"
+    aria-label="Back to top"
+    title="Back to top"
+  >
+    <span class="material-symbols-outlined">arrow_upward</span>
+  </button>
 </div>

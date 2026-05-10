@@ -9,7 +9,22 @@ import { CartService } from '../../core/services/cart.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { environment } from '../../../environments/environment';
 import { CouponService } from '../../core/services/coupon.service';
-import { CouponValidateResponse } from '../../shared/models/models';
+import { Address, CouponValidateResponse } from '../../shared/models/models';
+
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface CheckoutItem {
+  title: string;
+  author: string;
+  edition: string;
+  price: number;
+  quantity: number;
+  imageUrl: string;
+}
 
 type PaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
 
@@ -25,12 +40,23 @@ type PaymentMethod = 'WALLET' | 'ONLINE' | 'COD';
   styleUrl: './checkout.component.css'
 })
 export class CheckoutComponent implements OnInit {
-  private orderService = inject(OrderService);
-  private authService = inject(AuthService);
-  private cartService = inject(CartService);
-  private notificationService = inject(NotificationService);
-  private router = inject(Router);
+  private readonly orderService = inject(OrderService);
+  private readonly authService = inject(AuthService);
+  private readonly cartService = inject(CartService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly router = inject(Router);
   private readonly couponService = inject(CouponService);
+  
+  readonly indianStates = [
+    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 
+    'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 
+    'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 
+    'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+    'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
+    'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+  ];
 
   isProcessing = signal(false);
   paymentMethod = signal<PaymentMethod>('WALLET');
@@ -41,6 +67,12 @@ export class CheckoutComponent implements OnInit {
   addressErrors = signal<Record<string, string>>({});
   hasErrors = computed(() => Object.keys(this.addressErrors()).length > 0);
 
+  canPlaceOrder = computed(() => 
+    this.checkoutItems().length > 0 && 
+    !this.isProcessing() && 
+    (!this.isSubmitted() || !this.hasErrors())
+  );
+
   addressForm = {
     fullName: '',
     phone: '',
@@ -50,7 +82,7 @@ export class CheckoutComponent implements OnInit {
     pincode: ''
   };
 
-  savedAddresses = signal<any[]>([]);
+  savedAddresses = signal<Address[]>([]);
   isLoadingAddresses = signal(false);
   selectedAddressId = signal<number | null>(null);
   couponCode = signal('');
@@ -82,8 +114,8 @@ export class CheckoutComponent implements OnInit {
   }
 
   // Populates the address form with data from a selected saved address
-  selectAddress(address: any) {
-    this.selectedAddressId.set(address.addressId);
+  selectAddress(address: Address) {
+    this.selectedAddressId.set(address.addressId ?? null);
     this.addressForm = {
       fullName: address.fullName,
       phone: address.mobileNumber,
@@ -109,7 +141,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   // checkoutItems computed from cart signal
-  checkoutItems = computed(() => {
+  checkoutItems = computed<CheckoutItem[]>(() => {
     const items = this.cartService.cart()?.items || [];
     return items.map(item => ({
       title: item.bookTitle,
@@ -143,18 +175,18 @@ export class CheckoutComponent implements OnInit {
     const { fullName, phone, street, city, state, pincode } = this.addressForm;
 
     if (!fullName?.trim()) errors['fullName'] = 'Full Name is required.';
-    else if (/[0-9]/.test(fullName)) errors['fullName'] = 'Name cannot contain numeric characters.';
+    else if (/\d/.test(fullName)) errors['fullName'] = 'Name cannot contain numeric characters.';
     else if (!/^[a-zA-Z\s.-]*$/.test(fullName.trim())) errors['fullName'] = 'Name can only contain letters, dots, and hyphens.';
 
     if (!phone?.trim()) errors['phone'] = 'Phone Number is required.';
-    else if (!/^[0-9]{10}$/.test(phone.trim())) errors['phone'] = 'Phone must be exactly 10 digits.';
+    else if (!/^\d{10}$/.test(phone.trim())) errors['phone'] = 'Phone must be exactly 10 digits.';
 
     if (!street?.trim()) errors['street'] = 'Street Address is required.';
     if (!city?.trim()) errors['city'] = 'City is required.';
     if (!state?.trim()) errors['state'] = 'State is required.';
 
     if (!pincode?.trim()) errors['pincode'] = 'Pincode is required.';
-    else if (!/^[0-9]{6}$/.test(pincode.trim())) errors['pincode'] = 'Pincode must be exactly 6 digits.';
+    else if (!/^[1-9]\d{5}$/.test(pincode.trim())) errors['pincode'] = 'Enter a valid 6-digit Indian pincode.';
 
     this.addressErrors.set(errors);
   }
@@ -179,6 +211,11 @@ export class CheckoutComponent implements OnInit {
 
   // Main entry point for confirming and submitting the user's order
   confirmOrder() {
+    if (this.checkoutItems().length === 0) {
+      this.notificationService.error('Your archives are empty. Please add items before checking out.');
+      return;
+    }
+
     const user = this.authService.currentUser();
     this.isSubmitted.set(true); // Trigger validation UI
     
@@ -258,9 +295,8 @@ export class CheckoutComponent implements OnInit {
         this.router.navigate(['/dashboard']);
       }),
       catchError(err => {
-        console.error('Checkout error:', err);
         this.isProcessing.set(false);
-        this.notificationService.error(err.error?.message || 'Transaction failed.');
+        this.notificationService.error(err?.error?.message || 'Transaction failed.');
         return of(null);
       })
     ).subscribe();
@@ -284,9 +320,8 @@ export class CheckoutComponent implements OnInit {
         tap(keyId => this.openRazorpayModal(orderId, userId, keyId))
       )),
       catchError(err => {
-        console.error('Payment initiation error:', err);
         this.isProcessing.set(false);
-        this.notificationService.error(err.error?.message || 'Payment initiation failed.');
+        this.notificationService.error(err?.error?.message || 'Payment initiation failed.');
         return of(null);
       })
     ).subscribe();
@@ -324,7 +359,7 @@ export class CheckoutComponent implements OnInit {
         name: 'BookNest',
         description: 'Acquiring Curated Editions',
         order_id: orderId,
-        handler: (response: any) => {
+        handler: (response: RazorpayResponse) => {
           this.verifyAndFinalizeOnlineOrder(userId, response);
         },
         prefill: {
@@ -339,7 +374,7 @@ export class CheckoutComponent implements OnInit {
         }
       };
 
-      const rzp = new (globalThis as any).Razorpay(options);
+      const rzp = new (globalThis as unknown as { Razorpay: new (o: unknown) => { open: () => void } }).Razorpay(options);
       rzp.open();
     });
   }
@@ -347,7 +382,7 @@ export class CheckoutComponent implements OnInit {
   // Dynamically loads the Razorpay checkout script only when a payment is initiated
   private loadRazorpayScript(): Promise<void> {
     return new Promise((resolve) => {
-      if ((globalThis as any).Razorpay) {
+      if ((globalThis as { Razorpay?: unknown }).Razorpay) {
         resolve();
         return;
       }
@@ -359,7 +394,7 @@ export class CheckoutComponent implements OnInit {
   }
 
   // Verifies the online payment signature with the backend to finalize the order
-  private verifyAndFinalizeOnlineOrder(userId: number, response: any) {
+  private verifyAndFinalizeOnlineOrder(userId: number, response: RazorpayResponse) {
     const verifyPayload = {
       orderId: response.razorpay_order_id,
       paymentId: response.razorpay_payment_id,
@@ -376,13 +411,12 @@ export class CheckoutComponent implements OnInit {
         this.router.navigate(['/dashboard']);
       }),
       catchError(err => {
-        console.error('Online checkout error:', err);
         this.isProcessing.set(false);
         
         let errorMessage = 'Payment verification failed.';
-        if (err.error && typeof err.error === 'object') {
+        if (err?.error && typeof err.error === 'object') {
           errorMessage = err.error.message || errorMessage;
-        } else if (err.message) {
+        } else if (err?.message) {
           errorMessage = err.message;
         }
         
@@ -390,5 +424,13 @@ export class CheckoutComponent implements OnInit {
         return of(null);
       })
     ).subscribe();
+  }
+
+  trackByAddressId(_: number, item: Address): number | undefined {
+    return item.addressId;
+  }
+
+  trackByItemTitle(_: number, item: CheckoutItem): string {
+    return item.title;
   }
 }

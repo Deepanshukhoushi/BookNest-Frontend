@@ -78,7 +78,7 @@ export class OrderService {
   }
 
   // Verifies the authenticity of a completed online payment
-  verifyPayment(verifyPayload: any) {
+  verifyPayment(verifyPayload: Record<string, unknown>) {
     return this.http.post<ApiResponse<Order[]>>(`${this.PAYMENT_URL}/verify`, verifyPayload, {
       headers: { 'X-Skip-Toast': 'true' }
     }).pipe(

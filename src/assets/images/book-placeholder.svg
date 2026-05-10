@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+  <rect width="400" height="600" fill="#f2e6eb"/>
+  <path d="M100 150h200v300H100z" fill="#7f1635" opacity="0.1"/>
+  <rect x="140" y="240" width="120" height="120" rx="12" fill="#7f1635" opacity="0.2"/>
+  <path d="M160 280h80v40h-80z" fill="#7f1635" opacity="0.3"/>
+  <text x="200" y="420" font-family="Outfit, sans-serif" font-size="24" font-weight="700" fill="#7f1635" text-anchor="middle" opacity="0.4">BookNest</text>
+  <rect x="0" y="0" width="400" height="600" fill="none" stroke="#7f1635" stroke-width="2" opacity="0.05"/>
+</svg>

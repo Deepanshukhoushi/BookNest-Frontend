@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { OrderService } from '../../core/services/order.service';
 import { NotificationService } from '../../core/services/notification.service';
-import { Invoice, OrderStatus } from '../../shared/models/models';
+import { Invoice, Order, OrderStatus } from '../../shared/models/models';
 
 type UiOrder = {
   orderId: number;
@@ -39,12 +39,12 @@ export class OrderHistoryComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     this.orderService.getOrdersByUser(user.userId).subscribe({
-      next: (orders: any[]) => {
+      next: (orders: Order[]) => {
         const mapped: UiOrder[] = orders.map((order) => ({
           orderId: order.orderId,
-          amount: order.amountPaid ?? order.totalAmount ?? 0,
-          paymentMethod: order.paymentMethod ?? order.modeOfPayment ?? 'N/A',
-          status: order.orderStatus ?? order.status ?? 'N/A',
+          amount: order.amountPaid ?? 0,
+          paymentMethod: order.paymentMethod ?? 'N/A',
+          status: order.orderStatus ?? 'N/A',
           canCancel: [OrderStatus.PLACED, OrderStatus.CONFIRMED, OrderStatus.PAID].includes(order.orderStatus)
         }));
         this.orders.set(mapped);
@@ -98,5 +98,9 @@ export class OrderHistoryComponent implements OnInit {
     link.download = `${invoice.invoiceNumber}.txt`;
     link.click();
     URL.revokeObjectURL(url);
+  }
+
+  trackByOrderId(_: number, item: UiOrder): number {
+    return item.orderId;
   }
 }

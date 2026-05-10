@@ -19,6 +19,7 @@ export type ProfileSavePayload = {
 export class ProfileModalComponent implements OnChanges {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private selectedFile?: File;
 
   @Input() open = false;
   @Input() currentName = '';
@@ -78,7 +79,7 @@ export class ProfileModalComponent implements OnChanges {
       this.imagePreview.set(result);
       this.profileForm.markAsDirty();
       // Store the file for actual upload
-      (this as any).selectedFile = file;
+      this.selectedFile = file;
     };
     reader.readAsDataURL(file);
   }
@@ -115,7 +116,7 @@ export class ProfileModalComponent implements OnChanges {
     this.imagePreview.set('');
     this.previewImageError.set(false);
     this.fileSizeError.set('');
-    (this as any).selectedFile = undefined;
+    this.selectedFile = undefined;
     this.close.emit();
   }
 
@@ -129,7 +130,7 @@ export class ProfileModalComponent implements OnChanges {
       name: this.profileForm.value.name,
       // Never pass the base64 preview as profileImage — it's only for local display.
       // The parent receives imageFile for actual upload; profileImage is not needed here.
-      imageFile: (this as any).selectedFile
+      imageFile: this.selectedFile
     });
   }
 

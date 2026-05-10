@@ -7,6 +7,7 @@ import { map } from 'rxjs';
 
 import { ToastContainerComponent } from './shared/ui/toast-container/toast-container.component';
 
+
 /**
  * Root component of the Booknest application.
  * Manages the top-level layout, including the conditional visibility of the header and footer shell.
@@ -15,8 +16,7 @@ import { ToastContainerComponent } from './shared/ui/toast-container/toast-conta
   selector: 'app-root',
   standalone: true,
   imports: [RouterOutlet, HeaderComponent, FooterComponent, ToastContainerComponent],
-  templateUrl: './app.html',
-  styleUrl: './app.css',
+  templateUrl: './app.html'
 })
 export class App {
   private router = inject(Router);

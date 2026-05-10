@@ -41,6 +41,7 @@ export class HeaderComponent {
   showNotifications = signal(false);
   showMobileMenu = signal(false);
   isScrolled = signal(false);
+  isDarkMode = signal(false);
 
   avatarUrl = computed(() => {
     const user = this.user();
@@ -88,6 +89,40 @@ export class HeaderComponent {
         this.router.navigate(['/books']);
       }
     });
+
+    // Initialize Theme
+    if (globalThis.window !== undefined) {
+      const browserWindow = globalThis.window;
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = typeof browserWindow.matchMedia === 'function'
+        ? browserWindow.matchMedia('(prefers-color-scheme: dark)').matches
+        : false;
+      
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        this.isDarkMode.set(true);
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+      } else {
+        this.isDarkMode.set(false);
+        document.documentElement.classList.add('light');
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }
+
+  toggleDarkMode() {
+    const newMode = !this.isDarkMode();
+    this.isDarkMode.set(newMode);
+    
+    if (newMode) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    }
   }
 
   // Toggles the visibility of the user's notification list
@@ -107,7 +142,7 @@ export class HeaderComponent {
 
   @HostListener('window:scroll')
   onScroll() {
-    this.isScrolled.set(window.scrollY > 10);
+    this.isScrolled.set(globalThis.scrollY > 10);
   }
 
   // Toggles the side menu on mobile devices

@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, computed, inject, OnInit, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { forkJoin, catchError, of } from 'rxjs';
 import { LogoComponent } from '../../../shared/ui/logo/logo.component';
@@ -21,7 +21,7 @@ import { environment } from '../../../../environments/environment';
   changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, LogoComponent, RouterModule, ReactiveFormsModule, ConfirmModalComponent],
+  imports: [CommonModule, LogoComponent, RouterLink, ReactiveFormsModule, ConfirmModalComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
@@ -32,7 +32,9 @@ export class AdminDashboardComponent implements OnInit {
   private readonly couponService = inject(CouponService);
   private authService = inject(AuthService);
   private router = inject(Router);
-  private fb = inject(FormBuilder);
+  private readonly fb = inject(FormBuilder);
+
+  private readonly DEFAULT_REVIEW_COUNTS: Record<ReviewStatus, number> = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
 
   bookForm: FormGroup = this.fb.group({
     title: ['', Validators.required],
@@ -260,6 +262,15 @@ export class AdminDashboardComponent implements OnInit {
       );
     }
 
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.orderDate).getTime();
+      const dateB = new Date(b.orderDate).getTime();
+      if (dateA !== dateB) {
+        return dateB - dateA;
+      }
+      return b.orderId - a.orderId;
+    });
+
     return filtered.slice(0, 50);
   });
 
@@ -302,10 +313,10 @@ export class AdminDashboardComponent implements OnInit {
       orders: this.orderService.getAllOrders().pipe(catchError(() => of([]))),
       users: this.authService.getAllUsers().pipe(catchError(() => of([]))),
       reviews: this.reviewService.getAllReviews().pipe(catchError(() => of([]))),
-      reviewCounts: this.reviewService.getStatusCounts().pipe(catchError(() => of({ PENDING: 0, APPROVED: 0, REJECTED: 0 }))),
+      reviewCounts: this.reviewService.getStatusCounts().pipe(catchError(() => of(this.DEFAULT_REVIEW_COUNTS))),
       coupons: this.couponService.getAllCoupons().pipe(catchError(() => of([])))
     }).subscribe({
-      next: (data: any) => {
+      next: (data) => {
         this.inventory.set(data.books.content);
         this.allOrders.set(data.orders);
         const sortedUsers = [...data.users].sort((a, b) => {
@@ -402,32 +413,20 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
       setTimeout(() => this.actionMessage.set(''), 3000);
     };
 
-    const handleError = (err: any) => {
-      console.error('Clipboard copy failed:', err);
+    const handleError = (err: unknown) => {
       this.actionError.set('Clipboard access failed. Please copy manually.');
       setTimeout(() => this.actionError.set(''), 3000);
     };
 
-    if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(dispatchNote).then(handleSuccess).catch(handleError);
+    if (globalThis.navigator.clipboard && globalThis.isSecureContext) {
+      globalThis.navigator.clipboard.writeText(dispatchNote).then(handleSuccess).catch(handleError);
     } else {
-      // Fallback for non-secure contexts or older browsers
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = dispatchNote;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        if (successful) handleSuccess();
-        else handleError('execCommand failed');
-      } catch (err) {
-        handleError(err);
+      const promptResult = globalThis.window?.prompt('Copy dispatch info:', dispatchNote);
+      if (promptResult === null) {
+        handleError(new Error('Manual copy cancelled'));
+        return;
       }
+      handleSuccess();
     }
   }
 
@@ -443,12 +442,32 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
         this.actionMessage.set(`Order #${orderId} updated to ${updatedOrder.orderStatus}`);
         setTimeout(() => this.actionMessage.set(''), 3000);
       },
-      error: () => {
+      error: (err) => {
         this.actionLoading.set(false);
-        this.actionError.set('Failed to update status.');
-        setTimeout(() => this.actionError.set(''), 3000);
+        const errorMsg = err.error?.message || 'Failed to update status.';
+        this.actionError.set(errorMsg);
+        setTimeout(() => this.actionError.set(''), 5000);
       }
     });
+  }
+
+  getAvailableNextStatuses(currentStatus: OrderStatus): string[] {
+    const status = currentStatus as string;
+    
+    // Terminal states
+    if (['CANCELLED', 'DELIVERED', 'FAILED'].includes(status)) {
+      return [status];
+    }
+
+    const transitions: Record<string, string[]> = {
+      'PLACED': ['PLACED', 'CONFIRMED', 'PAID', 'CANCELLED'],
+      'CONFIRMED': ['CONFIRMED', 'PAID', 'SHIPPED', 'CANCELLED'],
+      'PAID': ['PAID', 'SHIPPED', 'CANCELLED'],
+      'SHIPPED': ['SHIPPED', 'OUT_FOR_DELIVERY'],
+      'OUT_FOR_DELIVERY': ['OUT_FOR_DELIVERY', 'DELIVERED']
+    };
+
+    return transitions[status] || [status];
   }
 
   updateUserRole(userId: number, role: string) {
@@ -812,5 +831,30 @@ ${addr?.state || 'N/A'}, ${addr?.pincode || 'N/A'}
       }
     });
     this.showConfirmModal.set(true);
+  }
+
+  // --- TrackBy Helpers ---
+  trackByBookId(_: number, item: Book): number {
+    return item.bookId;
+  }
+
+  trackByOrderId(_: number, item: Order): number {
+    return item.orderId;
+  }
+
+  trackByUserId(_: number, item: User): number {
+    return item.userId;
+  }
+
+  trackByReviewId(_: number, item: Review): number {
+    return item.reviewId || 0;
+  }
+
+  trackByCouponId(_: number, item: Coupon): number {
+    return item.couponId;
+  }
+
+  trackByValue<T>(_: number, value: T): T {
+    return value;
   }
 }

@@ -1,8 +1,9 @@
-import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpRequest, HttpHandlerFn, HttpErrorResponse, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { catchError, tap, throwError } from 'rxjs';
+import { catchError, switchMap, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { NotificationService } from '../services/notification.service';
+import { AuthService } from '../services/auth.service';
 
 /**
  * Global HTTP Interceptor for processing all backend communication.
@@ -11,6 +12,7 @@ import { NotificationService } from '../services/notification.service';
 export const apiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const router = inject(Router);
   const notificationService = inject(NotificationService);
+  const authService = inject(AuthService);
   const token = localStorage.getItem('token');
 
   let authReq = req;
@@ -25,14 +27,14 @@ export const apiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
   const isAuthRequest = req.url.includes('/api/v1/auth');
 
   return next(authReq).pipe(
-    tap((response: any) => {
-      // SUCCESS HANDLING
-      if (response?.body?.success === true && response.body?.message) {
-        // Suppress success toasts for GET requests and all auth requests (auth handled inline)
-        // Also suppress if 'X-Skip-Toast' header is present
-        const skipToast = req.headers.has('X-Skip-Toast');
-        if (req.method !== 'GET' && !isAuthRequest && !skipToast) {
-          notificationService.success(response.body.message);
+    tap((event: HttpEvent<unknown>) => {
+      if (event.type === HttpEventType.Response) {
+        const body = (event as HttpResponse<{ success?: boolean; message?: string }>).body;
+        if (body?.success === true && body?.message) {
+          const skipToast = req.headers.has('X-Skip-Toast');
+          if (req.method !== 'GET' && !isAuthRequest && !skipToast) {
+            notificationService.success(body.message);
+          }
         }
       }
     }),
@@ -72,22 +74,36 @@ export const apiInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, nex
         notificationService.error(userMessage);
       } else {
         // For standard GET failures or auth failures, we rely on Component-level inline error UI
-        console.warn('Notification suppressed (handled by component or background):', userMessage);
+      }
+
+      if (error.status === 401 && !req.url.includes('/auth/refresh')) {
+        return authService.refresh().pipe(
+          switchMap(newToken => {
+            const retryReq = req.clone({
+              setHeaders: { Authorization: `Bearer ${newToken}` }
+            });
+            return next(retryReq);
+          }),
+          catchError(refreshError => {
+            clearAuthData();
+            
+            // Only redirect to /auth if it's NOT a public GET request
+            const isPublicGet = req.method === 'GET' && (
+              req.url.includes('/api/v1/books') || 
+              req.url.includes('/api/v1/reviews/book')
+            );
+            
+            if (!isPublicGet) {
+              router.navigate(['/auth']);
+            }
+            return throwError(() => refreshError);
+          })
+        );
       }
 
       if (error.status === 401) {
-        // Unauthorized - clear session
         clearAuthData();
-        
-        // Only redirect to /auth if it's NOT a public GET request
-        const isPublicGet = req.method === 'GET' && (
-          req.url.includes('/api/v1/books') || 
-          req.url.includes('/api/v1/reviews/book')
-        );
-        
-        if (!isPublicGet) {
-          router.navigate(['/auth']);
-        }
+        router.navigate(['/auth']);
       }
 
       return throwError(() => error);

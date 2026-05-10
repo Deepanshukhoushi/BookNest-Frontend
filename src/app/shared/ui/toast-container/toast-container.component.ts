@@ -138,7 +138,7 @@ import { NotificationService } from '../../../core/services/notification.service
     .clear-all-btn:hover {
       background: var(--color-primary);
       color: white;
-      border-color: var(--color-primary-light);
+      border-color: var(--color-primary-hover);
     }
     .clear-all-btn .material-symbols-outlined {
       font-size: 1rem;

@@ -20,8 +20,8 @@ import { Book } from '../../shared/models/models';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BookListingsComponent implements OnInit {
-  private bookService = inject(BookService);
-  private searchService = inject(SearchService);
+  private readonly bookService = inject(BookService);
+  private readonly searchService = inject(SearchService);
 
   searchTerm = this.searchService.searchTerm;
 
@@ -68,6 +68,16 @@ export class BookListingsComponent implements OnInit {
     return active ? active.label : 'Featured';
   });
 
+  sidebarOpen = signal(false);
+
+  activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.selectedGenre()) count++;
+    if (this.minPrice() > 0 || this.maxPrice() < 2000) count++;
+    if (this.minRating()) count++;
+    return count;
+  });
+
   // Computed properties for pagination text
   showingStart = computed(() => (this.currentPage() * this.pageSize()) + 1);
   showingEnd = computed(() => Math.min((this.currentPage() + 1) * this.pageSize(), this.totalElements()));
@@ -106,7 +116,13 @@ export class BookListingsComponent implements OnInit {
   }
 
   // Fetches a subset of books from the catalog based on search criteria and filters
-  loadBooks(page: number = 0, keyword: string = '', filters: any = {}) {
+  loadBooks(page: number = 0, keyword: string = '', filters: {
+    genre?: string | null;
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number | null;
+    sort?: string;
+  } = {}) {
     this.loading.set(true);
     
     // Use the upgraded searchBooks which handles all filters
@@ -149,7 +165,7 @@ export class BookListingsComponent implements OnInit {
   }
 
   // Updates the sorting order for the book collection
-  selectSort(option: any) {
+  selectSort(option: { label: string; value: string }) {
     this.sortBy.set(option.value);
     this.isSortOpen.set(false);
   }
@@ -174,16 +190,19 @@ export class BookListingsComponent implements OnInit {
   }
 
   // Updates the minimum price constraint for the book search
-  updateMinPrice(event: any) {
+  updateMinPrice(event: Event) {
     // Locked to 0 for single-handle UI
     this.minPrice.set(0);
   }
 
   // Updates the maximum price constraint for the book search
-  updateMaxPrice(event: any) {
-    const value = Number.parseInt(event.target.value, 10);
-    if (!Number.isNaN(value)) {
-      this.maxPrice.set(Math.max(value, this.minPrice()));
+  updateMaxPrice(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input) {
+      const value = Number.parseInt(input.value, 10);
+      if (!Number.isNaN(value)) {
+        this.maxPrice.set(Math.max(value, this.minPrice()));
+      }
     }
   }
 
@@ -206,6 +225,30 @@ export class BookListingsComponent implements OnInit {
     this.minPrice.set(0);
     this.maxPrice.set(2000);
     this.minRating.set(null);
+  }
+
+  showBackToTop = signal(false);
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.showBackToTop.set(window.scrollY > 400);
+  }
+
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Track by helper for books
+  trackByBookId(_: number, book: Book): number {
+    return book.bookId;
+  }
+
+  trackByGenre(_: number, genre: string): string {
+    return genre;
+  }
+
+  trackByValue<T>(_: number, item: T): T {
+    return (item as Record<string, unknown>)?.['value'] as T ?? item;
   }
 }
 

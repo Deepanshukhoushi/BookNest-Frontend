@@ -38,9 +38,9 @@ export class BookCardComponent {
   private notificationService = inject(NotificationService);
 
   isAddingToCart = signal(false);
-  fallbackImage = '/assets/images/book-fallback.svg';
+  fallbackImage = '/assets/images/book-placeholder.svg';
 
-  isNumber(val: any): boolean {
+  isNumber(val: unknown): boolean {
     return val !== null && val !== undefined && !isNaN(Number(val));
   }
 
@@ -116,8 +116,8 @@ export class BookCardComponent {
     return this.authService.resolveImageUrl(url) || this.fallbackImage;
   }
 
-  onImageError(event: any) {
-    event.target.src = this.fallbackImage;
+  onImageError(event: Event) {
+    (event.target as HTMLImageElement).src = this.fallbackImage;
   }
 
   getStarFill(starIndex: number): number {
@@ -125,5 +125,9 @@ export class BookCardComponent {
     if (rating >= starIndex) return 100;
     if (rating > starIndex - 1) return (rating % 1) * 100;
     return 0;
+  }
+
+  trackByValue<T>(_: number, value: T): T {
+    return value;
   }
 }

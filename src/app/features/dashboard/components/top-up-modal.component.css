@@ -1,4 +1,4 @@
-﻿.modal-backdrop {
+.modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(1, 45, 29, 0.4);
@@ -177,7 +177,7 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -251,7 +251,7 @@
 }
 
 .modal-container .submit-btn:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(127, 22, 53, 0.3);
 }

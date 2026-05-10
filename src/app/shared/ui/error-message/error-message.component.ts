@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="error-inline glass-card">
+    <div class="error-inline card card--glass">
       <div class="error-icon">
         <span class="material-symbols-outlined">error_outline</span>
       </div>
@@ -73,7 +73,7 @@ import { CommonModule } from '@angular/common';
       transition: background 0.2s, transform 0.1s;
     }
     .retry-btn:hover {
-      background: var(--color-primary-light);
+      background: var(--color-primary-hover);
     }
     .retry-btn:active {
       transform: scale(0.98);

@@ -6,6 +6,7 @@ describe('SearchService', () => {
   let service: SearchService;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [SearchService]
     });

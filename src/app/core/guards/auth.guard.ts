@@ -24,7 +24,7 @@ export const authGuard: CanActivateFn = (route, state) => {
     const storedRole = localStorage.getItem('role');
     const finalRole = tokenRole || storedRole || 'USER';
 
-    console.debug(`[AuthGuard] Accessing: ${state.url}, Required: ${requiredRoles}, Detected: ${finalRole}`);
+
 
     // Synchronize localStorage if the token provided a more recent/accurate role
     if (tokenRole && tokenRole !== storedRole) {
@@ -33,7 +33,7 @@ export const authGuard: CanActivateFn = (route, state) => {
 
     if (requiredRoles.includes(finalRole)) return true;
 
-    console.warn(`[AuthGuard] Access Denied. Redirecting ${finalRole} away from ${state.url}`);
+
     router.navigate(['/'], { replaceUrl: true });
     return false;
   }

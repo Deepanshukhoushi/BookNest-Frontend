@@ -81,7 +81,7 @@
     @if (activeView() === 'overview') {
       <!-- Bento Grid Metrics -->
       <div class="metrics-grid">
-        <div class="metric-card" *ngFor="let metric of metrics()" [ngClass]="metric.color">
+        <div class="metric-card" *ngFor="let metric of metrics(); trackBy: trackByValue" [ngClass]="metric.color">
           <div class="metric-header">
             <div class="metric-icon">
               <span class="material-symbols-outlined" [style.color]="'var(--color-' + metric.color + ')'">{{ metric.icon }}</span>
@@ -105,7 +105,7 @@
             <span class="view-all">{{ topSellingBooks().length }} ranked titles</span>
           </div>
           <div class="insight-list">
-            <div class="insight-row" *ngFor="let item of topSellingBooks(); let i = index">
+            <div class="insight-row" *ngFor="let item of topSellingBooks(); let i = index; trackBy: trackByValue">
               <div>
                 <strong>#{{ i + 1 }} {{ item.title }}</strong>
                 <p>{{ item.quantity }} copies sold</p>
@@ -130,7 +130,7 @@
             </div>
           </div>
           <div class="insight-list">
-            <button type="button" class="insight-row interactive" *ngFor="let item of categoryBreakdown()" 
+            <button type="button" class="insight-row interactive" *ngFor="let item of categoryBreakdown(); trackBy: trackByValue" 
                  (click)="setGenreFilter(item.genre)" 
                  [class.selected]="selectedGenre() === item.genre" 
                  style="cursor: pointer; transition: all 0.2s ease; width: 100%; border: none; background: transparent; text-align: left; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font: inherit;">
@@ -157,7 +157,7 @@
           <div>
             <h4>Low Stock</h4>
             <div class="insight-list compact">
-              <div class="insight-row" *ngFor="let item of adminAlerts().lowStock.slice(0, 6)">
+              <div class="insight-row" *ngFor="let item of adminAlerts().lowStock.slice(0, 6); trackBy: trackByBookId">
                 <div>
                   <strong>{{ item.title }}</strong>
                   <p>{{ item.author }}</p>
@@ -172,7 +172,7 @@
           <div>
             <h4>New / Active Orders</h4>
             <div class="insight-list compact">
-              <button type="button" class="insight-row interactive" *ngFor="let order of adminAlerts().newOrders" 
+              <button type="button" class="insight-row interactive" *ngFor="let order of adminAlerts().newOrders; trackBy: trackByOrderId" 
                    (click)="setView('orders')" 
                    style="cursor: pointer; width: 100%; border: none; background: transparent; text-align: left; padding: 0.5rem 0.75rem; display: flex; justify-content: space-between; align-items: center; font: inherit;">
                 <div>
@@ -225,7 +225,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of filteredInventory()">
+            <tr *ngFor="let item of filteredInventory(); trackBy: trackByBookId">
               <td>
                 <div class="book-cell">
                   <img loading="lazy" [src]="getSafeImageUrl(item.coverImageUrl)" alt="Book" class="book-thumb" (error)="onImageError($event)">
@@ -286,7 +286,7 @@
         <div class="filter-actions" style="display: flex; gap: 0.3rem; padding: 0.5rem 1.5rem; flex-wrap: wrap; border-bottom: 1px solid rgba(113, 121, 115, 0.1);">
           <button
             class="filter-btn"
-            *ngFor="let status of availableFilters"
+            *ngFor="let status of availableFilters; trackBy: trackByValue"
             [class.active]="filterStatus() === status"
             (click)="setFilter(status)"
             style="font-size: 0.65rem; padding: 0.2rem 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: transparent; cursor: pointer;"
@@ -295,7 +295,7 @@
           </button>
         </div>
         <div class="acquisitions-list">
-          <div class="acq-item" *ngFor="let order of displayedOrders()">
+          <div class="acq-item" *ngFor="let order of displayedOrders(); trackBy: trackByOrderId">
             <div class="acq-info">
               <div class="order-header-row">
                 <h5>{{ order.bookName }}</h5>
@@ -341,7 +341,7 @@
 
                 <div class="status-updater">
                   <select [value]="order.orderStatus" (change)="updateStatus(order.orderId, $any($event.target).value)">
-                    <option *ngFor="let s of availableFilters.slice(1)" [value]="s">{{ getFilterLabel(s) }}</option>
+                    <option *ngFor="let s of getAvailableNextStatuses(order.orderStatus); trackBy: trackByValue" [value]="s">{{ getFilterLabel(s) }}</option>
                   </select>
                 </div>
               </div>
@@ -380,7 +380,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let user of allUsers().slice(0, 12)">
+            <tr *ngFor="let user of allUsers().slice(0, 12); trackBy: trackByUserId">
               <td>{{ user.fullName }}</td>
               <td>{{ user.email }}</td>
               <td>
@@ -511,7 +511,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let coupon of allCoupons()">
+            <tr *ngFor="let coupon of allCoupons(); trackBy: trackByCouponId">
               <td>{{ coupon.code }}</td>
               <td>{{ coupon.discountType }}</td>
               <td>{{ coupon.discountType === 'PERCENTAGE' ? (coupon.discountValue + '%') : ('₹' + coupon.discountValue) }}</td>

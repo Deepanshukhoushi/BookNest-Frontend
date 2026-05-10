@@ -14,7 +14,7 @@
         </div>
 
         <div class="cart-items" *ngIf="cartItems().length > 0; else emptyCart">
-          <div class="cart-card" *ngFor="let item of cartItems()">
+          <div class="cart-card" *ngFor="let item of cartItems(); trackBy: trackByItemId">
             <div class="item-visual" [routerLink]="['/book', item.bookId]">
               <img loading="lazy" [src]="item.bookImageUrl || 'assets/placeholder.jpg'" [alt]="item.bookTitle" class="item-cover">
             </div>
@@ -35,7 +35,7 @@
                     <span class="material-symbols-outlined">remove</span>
                   </button>
                   <span class="qty-value">{{ item.quantity }}</span>
-                  <button class="qty-btn" (click)="updateQuantity(item.itemId, item.quantity + 1)">
+                  <button class="qty-btn" (click)="updateQuantity(item.itemId, item.quantity + 1)" [disabled]="item.quantity >= (item.stockAvailable ?? 99)">
                     <span class="material-symbols-outlined">add</span>
                   </button>
                 </div>
@@ -70,13 +70,13 @@
         </div>
 
         <div class="wishlist-grid">
-          <div class="wishlist-card" *ngFor="let item of wishlistItems()">
+          <div class="wishlist-card" *ngFor="let item of wishlistItems(); trackBy: trackByWishlistId">
             <img loading="lazy" [src]="item.bookImageUrl || 'assets/placeholder.jpg'" [alt]="item.bookTitle" class="wish-cover">
             <div class="wish-info">
               <div class="wish-text">
                 <h4 class="wish-title">{{ item.bookTitle }}</h4>
                 <p class="wish-meta">Saved Item</p>
-                <span class="wish-price">₹{{ item.bookPrice?.toFixed(2) }}</span>
+                <span class="wish-price">₹{{ item.bookPrice.toFixed(2) }}</span>
               </div>
               <button class="move-to-cart-btn" (click)="moveToCart(item)">
                 Move to Cart

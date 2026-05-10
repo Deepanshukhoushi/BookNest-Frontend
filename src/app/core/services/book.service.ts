@@ -42,7 +42,13 @@ export class BookService {
   }
 
   // Searches and filters books based on keyword, genre, price, and rating
-  searchBooks(keyword: string = '', page: number = 0, size: number = 10, filters: any = {}) {
+  searchBooks(keyword: string = '', page: number = 0, size: number = 10, filters: {
+    genre?: string | null;
+    minPrice?: number;
+    maxPrice?: number;
+    minRating?: number | null;
+    sort?: string;
+  } = {}) {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());

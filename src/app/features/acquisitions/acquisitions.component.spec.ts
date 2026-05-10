@@ -62,6 +62,49 @@ describe('AcquisitionsComponent', () => {
     expect(component.orders()[0].items[0].title).toBe('Test Book');
   });
 
+  it('should map nested order items when present', () => {
+    orderServiceSpy.getOrdersByUser = vi.fn().mockReturnValue(of([{
+      orderId: 202,
+      orderStatus: 'PLACED',
+      totalAmount: 900,
+      paymentMethod: 'ONLINE',
+      orderDate: '2023-02-01',
+      items: [
+        { bookTitle: 'Book One', quantity: 2, price: 300 },
+        { bookName: 'Book Two', quantity: 1, amountPaid: 300 }
+      ]
+    }]));
+
+    component.ngOnInit();
+
+    expect(component.orders()[0].items).toEqual([
+      { title: 'Book One', quantity: 2, price: 300 },
+      { title: 'Book Two', quantity: 1, price: 300 }
+    ]);
+  });
+
+  it('should show a login message when no user is available', async () => {
+    authServiceSpy.currentUser.set(null);
+
+    const noUserFixture = TestBed.createComponent(AcquisitionsComponent);
+    const noUserComponent = noUserFixture.componentInstance;
+    noUserFixture.detectChanges();
+
+    expect(noUserComponent.error()).toBe('Please login to view orders.');
+    expect(orderServiceSpy.getOrdersByUser).not.toHaveBeenCalledWith(undefined);
+  });
+
+  it('should surface order loading errors', () => {
+    orderServiceSpy.getOrdersByUser = vi.fn().mockReturnValue(
+      throwError(() => ({ error: { message: 'Load failed' } }))
+    );
+
+    component.ngOnInit();
+
+    expect(component.loading()).toBe(false);
+    expect(component.error()).toBe('Load failed');
+  });
+
   it('should handle cancel order', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     orderServiceSpy.cancelOrder = vi.fn().mockReturnValue(of({} as any));
@@ -69,6 +112,26 @@ describe('AcquisitionsComponent', () => {
     component.onCancelOrder(101);
     
     expect(orderServiceSpy.cancelOrder).toHaveBeenCalledWith(101);
+  });
+
+  it('should not cancel an order when confirmation is declined', () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    component.onCancelOrder(101);
+
+    expect(orderServiceSpy.cancelOrder).not.toHaveBeenCalled();
+  });
+
+  it('should alert when order cancellation fails', () => {
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    orderServiceSpy.cancelOrder = vi.fn().mockReturnValue(
+      throwError(() => ({ error: { message: 'Cancel failed' } }))
+    );
+
+    component.onCancelOrder(101);
+
+    expect(alertSpy).toHaveBeenCalledWith('Cancel failed');
   });
 
   it('should determine status classes', () => {

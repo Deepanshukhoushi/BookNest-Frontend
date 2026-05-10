@@ -5,6 +5,19 @@ import { WalletService } from '../../../core/services/wallet.service';
 import { catchError, of, switchMap, tap } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 
+interface RazorpayResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface VerificationData {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+  amount: number;
+}
+
 @Component({
   selector: 'app-top-up-modal',
   standalone: true,
@@ -31,7 +44,12 @@ export class TopUpModalComponent {
 
   constructor() {
     this.topUpForm = this.fb.group({
-      amount: [500, [Validators.required, Validators.min(100), Validators.max(100000), Validators.pattern('^[0-9]*$')]]
+      amount: [500, [
+        Validators.required, 
+        Validators.min(100), 
+        Validators.max(100000), 
+        Validators.pattern('^[1-9][0-9]*$')
+      ]]
     });
   }
 
@@ -57,7 +75,6 @@ export class TopUpModalComponent {
         tap(keyId => this.openRazorpayModal(orderId, amount, keyId))
       )),
       catchError(err => {
-        console.error('Top-up initiation error:', err);
         this.isSubmitting.set(false);
         this.errorMessage.set(err?.error?.message || 'Payment initiation failed.');
         return of(null);
@@ -84,7 +101,7 @@ export class TopUpModalComponent {
       name: 'BookNest',
       description: 'Wallet Top-Up',
       order_id: orderId,
-      handler: (response: any) => {
+      handler: (response: RazorpayResponse) => {
         this.verifyRazorpayPayment({
           orderId: response.razorpay_order_id,
           paymentId: response.razorpay_payment_id,
@@ -104,22 +121,28 @@ export class TopUpModalComponent {
       }
     };
 
-    const rzp = new (window as any).Razorpay(options);
+    const RazorpayCtor = (globalThis as typeof globalThis & {
+      Razorpay: new (options: unknown) => { open: () => void };
+    }).Razorpay;
+    const rzp = new RazorpayCtor(options);
     rzp.open();
   }
 
-  private verifyRazorpayPayment(verificationData: any) {
-    this.walletService.verifyRazorpayTopUp(verificationData).subscribe({
+  private verifyRazorpayPayment(verificationData: VerificationData) {
+    this.walletService.verifyRazorpayTopUp(verificationData as unknown as Record<string, unknown>).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.success.emit();
         this.onClose();
       },
       error: (err) => {
-        console.error('Top-up verification error:', err);
         this.isSubmitting.set(false);
         this.errorMessage.set(err?.error?.message || 'Transaction verification failed.');
       }
     });
+  }
+
+  trackByValue<T>(_: number, value: T): T {
+    return value;
   }
 }

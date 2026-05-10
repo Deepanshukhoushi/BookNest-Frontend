@@ -46,8 +46,8 @@
           <div class="floating-form-field">
             <div class="password-field-shell">
               <input id="loginPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
-                [(ngModel)]="authData.password" #loginPass="ngModel" placeholder=" " required minlength="6"
-                class="floating-input password-input" [class.has-value]="authData.password"
+                [ngModel]="authData.password()" (ngModelChange)="authData.password.set($event)" #loginPass="ngModel" placeholder=" " required minlength="6"
+                class="floating-input password-input" [class.has-value]="authData.password()"
                 [class.input-invalid]="loginPass.invalid && (loginPass.dirty || loginPass.touched)">
               <label class="floating-label" for="loginPassword">Password</label>
               <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
@@ -129,8 +129,8 @@
             <div class="floating-form-field">
               <div class="password-field-shell">
                 <input id="regPassword" [type]="showPassword() ? 'text' : 'password'" name="password" 
-                  [(ngModel)]="authData.password" #regPass="ngModel" placeholder=" "
-                  required minlength="8" class="floating-input password-input" [class.has-value]="authData.password"
+                  [ngModel]="authData.password()" (ngModelChange)="authData.password.set($event)" #regPass="ngModel" placeholder=" "
+                  required minlength="8" class="floating-input password-input" [class.has-value]="authData.password()"
                   [class.input-invalid]="regPass.invalid && (regPass.dirty || regPass.touched)">
                 <label class="floating-label" for="regPassword">Password</label>
                 <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
@@ -142,15 +142,25 @@
               <div class="field-error" *ngIf="regPass.invalid && (regPass.dirty || regPass.touched)">
                 At least 8 characters
               </div>
+              <!-- Password Strength Indicator -->
+              <div *ngIf="authData.password()" style="margin-top:6px">
+                <div style="display:flex;gap:4px">
+                  <div *ngFor="let i of [1,2,3,4]"
+                    [style.background]="passwordStrength() >= i ? strengthColor() : '#e5e7eb'"
+                    style="height:3px;flex:1;border-radius:2px;transition:background .2s">
+                  </div>
+                </div>
+                <span style="font-size:11px;color:#6b7280;display:block;margin-top:2px">{{ strengthLabel() }}</span>
+              </div>
             </div>
             <div class="floating-form-field">
               <div class="password-field-shell">
                 <input id="regConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" 
-                  [(ngModel)]="authData.confirmPassword" #regConfirm="ngModel"
+                  [ngModel]="authData.confirmPassword()" (ngModelChange)="authData.confirmPassword.set($event)" #regConfirm="ngModel"
                   placeholder=" " required class="floating-input password-input"
-                  [class.input-mismatch]="authData.confirmPassword && authData.password !== authData.confirmPassword"
-                  [class.input-match]="authData.confirmPassword && authData.password === authData.confirmPassword"
-                  [class.has-value]="authData.confirmPassword"
+                  [class.input-mismatch]="authData.confirmPassword() && authData.password() !== authData.confirmPassword()"
+                  [class.input-match]="authData.confirmPassword() && authData.password() === authData.confirmPassword()"
+                  [class.has-value]="authData.confirmPassword()"
                   [class.input-invalid]="regConfirm.invalid && (regConfirm.dirty || regConfirm.touched)">
                 <label class="floating-label" for="regConfirmPassword">Confirm</label>
                 <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
@@ -162,12 +172,12 @@
             </div>
           </div>
           <span class="password-hint"
-            *ngIf="authData.confirmPassword && authData.password !== authData.confirmPassword">
+            *ngIf="authData.confirmPassword() && authData.password() !== authData.confirmPassword()">
             Passwords do not match
           </span>
 
           <button type="submit" class="submit-btn"
-            [disabled]="loading() || regName.invalid || regEmail.invalid || regMobile.invalid || regPass.invalid || regConfirm.invalid || (authData.password !== authData.confirmPassword)">
+            [disabled]="loading() || regName.invalid || regEmail.invalid || regMobile.invalid || regPass.invalid || regConfirm.invalid || (authData.password() !== authData.confirmPassword())">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             {{ loading() ? 'Creating Account...' : 'Create account' }}
           </button>
@@ -216,14 +226,23 @@
         @if (authMode() === 'reset') {
         <h1 class="form-heading">Set New Password</h1>
         <p class="form-subheading">
-          Enter the code sent to your email and your new password. <button (click)="setMode('forgot')">Resend
-            code</button>
+          Enter the code sent to your email and your new password.
+          <span *ngIf="otpExpiry() > 0" style="display: block; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
+            Code expires in <strong style="color: var(--color-primary);">{{ otpTimerLabel() }}</strong>
+            <button *ngIf="canResend()" (click)="onSendOtp()" [disabled]="loading()" style="margin-left: 10px; color: var(--color-primary); background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline; font-weight: 600;">
+              Resend now?
+            </button>
+          </span>
+          <button *ngIf="otpExpiry() === 0" (click)="onSendOtp()" style="color: var(--color-error); font-weight: 700; background: none; border: none; padding: 0; cursor: pointer; text-decoration: underline;">
+            Code expired. Resend?
+          </button>
         </p>
 
         <form class="auth-form" (ngSubmit)="onResetPassword()">
           <div class="floating-form-field">
             <input id="resetOtp" type="text" name="otp" [(ngModel)]="resetData.otp" #resetOtp="ngModel"
-              placeholder=" " required maxlength="6" pattern="[0-9]{6}" inputmode="numeric" 
+              placeholder="000000" required maxlength="6" inputmode="numeric" pattern="[0-9]*"
+              autocomplete="one-time-code" (input)="resetData.otp = $any($event.target).value.replace(/\D/g,'')"
               class="floating-input" [class.has-value]="resetData.otp"
               [class.input-invalid]="resetOtp.invalid && (resetOtp.dirty || resetOtp.touched)">
             <label class="floating-label" for="resetOtp">Verification Code (OTP)</label>
@@ -236,9 +255,9 @@
             <div class="floating-form-field">
               <div class="password-field-shell">
                 <input id="resetNewPassword" [type]="showPassword() ? 'text' : 'password'" name="newPassword" 
-                  [(ngModel)]="resetData.newPassword" #resetPass="ngModel"
+                  [ngModel]="resetData.newPassword()" (ngModelChange)="resetData.newPassword.set($event)" #resetPass="ngModel"
                   placeholder=" " required minlength="8" class="floating-input password-input" 
-                  [class.has-value]="resetData.newPassword"
+                  [class.has-value]="resetData.newPassword()"
                   [class.input-invalid]="resetPass.invalid && (resetPass.dirty || resetPass.touched)">
                 <label class="floating-label" for="resetNewPassword">New Password</label>
                 <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
@@ -254,11 +273,11 @@
             <div class="floating-form-field">
               <div class="password-field-shell">
                 <input id="resetConfirmPassword" [type]="showPassword() ? 'text' : 'password'" name="confirmPassword" 
-                  [(ngModel)]="resetData.confirmPassword" #resetConfirm="ngModel"
+                  [ngModel]="resetData.confirmPassword()" (ngModelChange)="resetData.confirmPassword.set($event)" #resetConfirm="ngModel"
                   placeholder=" " required class="floating-input password-input"
-                  [class.input-mismatch]="resetData.confirmPassword && resetData.newPassword !== resetData.confirmPassword"
-                  [class.input-match]="resetData.confirmPassword && resetData.newPassword === resetData.confirmPassword"
-                  [class.has-value]="resetData.confirmPassword"
+                  [class.input-mismatch]="resetData.confirmPassword() && resetData.newPassword() !== resetData.confirmPassword()"
+                  [class.input-match]="resetData.confirmPassword() && resetData.newPassword() === resetData.confirmPassword()"
+                  [class.has-value]="resetData.confirmPassword()"
                   [class.input-invalid]="resetConfirm.invalid && (resetConfirm.dirty || resetConfirm.touched)">
                 <label class="floating-label" for="resetConfirmPassword">Confirm Password</label>
                 <button type="button" class="password-toggle" (click)="showPassword.set(!showPassword())" tabindex="-1">
@@ -271,7 +290,7 @@
           </div>
 
           <button type="submit" class="submit-btn"
-            [disabled]="loading() || resetOtp.invalid || resetPass.invalid || resetConfirm.invalid || (resetData.newPassword !== resetData.confirmPassword)">
+            [disabled]="loading() || resetOtp.invalid || resetPass.invalid || resetConfirm.invalid || (resetData.newPassword() !== resetData.confirmPassword())">
             <span *ngIf="loading()" class="material-symbols-outlined animate-spin">progress_activity</span>
             Update Password
           </button>

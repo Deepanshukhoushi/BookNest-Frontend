@@ -75,7 +75,7 @@ export class WalletService {
   }
 
   // Verifies a Razorpay payment and updates the wallet balance
-  verifyRazorpayTopUp(verificationData: any) {
+  verifyRazorpayTopUp(verificationData: Record<string, unknown>) {
     return this.http.post<ApiResponse<WalletApiResponse>>(`${this.API_URL}/verify-razorpay`, verificationData).pipe(
       map((response) => ({
         walletId: response.data.walletId,

@@ -20,6 +20,9 @@ describe('HeaderComponent', () => {
   const mockUser = { userId: 1, fullName: 'John Doe', role: 'USER', email: 'john@test.com' };
 
   beforeEach(async () => {
+    localStorage.clear();
+    document.documentElement.className = '';
+
     const userSignal = signal(mockUser as any);
 
     authServiceSpy = {
@@ -42,6 +45,7 @@ describe('HeaderComponent', () => {
       setSearchTerm: vi.fn()
     };
 
+    TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [HeaderComponent],
       providers: [
@@ -154,5 +158,36 @@ describe('HeaderComponent', () => {
     Object.defineProperty(window, 'scrollY', { value: 50, writable: true });
     component.onScroll();
     expect(component.isScrolled()).toBe(true);
+  });
+
+  it('should initialize dark theme from local storage', async () => {
+    localStorage.setItem('theme', 'dark');
+
+    const themedFixture = TestBed.createComponent(HeaderComponent);
+    const themedComponent = themedFixture.componentInstance;
+    themedFixture.detectChanges();
+
+    expect(themedComponent.isDarkMode()).toBe(true);
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+  });
+
+  it('should toggle dark mode and persist the preference', () => {
+    component.toggleDarkMode();
+
+    expect(component.isDarkMode()).toBe(true);
+    expect(localStorage.getItem('theme')).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+  });
+
+  it('should resolve avatar urls until an image error occurs', () => {
+    authServiceSpy.resolveImageUrl.mockReturnValue('resolved-avatar');
+    authServiceSpy.currentUser.set({ ...mockUser, profileImage: 'avatar.png' });
+    fixture.detectChanges();
+
+    expect(component.avatarUrl()).toBe('resolved-avatar');
+
+    component.onImageError();
+
+    expect(component.avatarUrl()).toBeNull();
   });
 });

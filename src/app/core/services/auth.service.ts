@@ -24,14 +24,12 @@ export class AuthService {
   private router = inject(Router);
   private readonly API_URL = environment.apiBaseUrl + '/auth';
   private readonly USER_API_URL = environment.apiBaseUrl + '/users';
-  private readonly gatewayOrigin = environment.apiBaseUrl.startsWith('http') 
-    ? new URL(environment.apiBaseUrl).origin 
-    : typeof window !== 'undefined' ? window.location.origin : '';
+  private readonly gatewayOrigin = this.resolveGatewayOrigin();
 
   // State
   private userSignal = signal<User | null>(this.getStoredUser());
   private profileImageVersion = signal(Date.now());
-  currentUser = this.userSignal.asReadonly();
+  currentUser = computed(() => this.userSignal());
   isAuthenticated = computed(() => !!this.userSignal());
 
   constructor() {
@@ -144,7 +142,7 @@ export class AuthService {
   }
 
   // Resets the user's password using the received OTP
-  resetPassword(payload: any) {
+  resetPassword(payload: { email: string, otp: string, newPassword: string }) {
     return this.http.post<ApiResponse<string>>(`${this.API_URL}/reset-password`, payload);
   }
 
@@ -220,16 +218,22 @@ export class AuthService {
 
   handleOAuthSuccess(token: string): Observable<User | null> {
     localStorage.setItem('token', token);
-    try {
-      this.persistClaimsFromToken(token);
-      const userId = this.extractUserIdFromToken(token);
-      if (userId) {
-        return this.fetchProfile(userId);
-      }
-    } catch (e) {
-      console.error('Failed to decode OAuth token', e);
+    this.persistClaimsFromToken(token);
+    const userId = this.extractUserIdFromToken(token);
+    if (userId) {
+      return this.fetchProfile(userId);
     }
     return of(null);
+  }
+
+  private resolveGatewayOrigin(): string {
+    if (environment.apiBaseUrl.startsWith('http')) {
+      return new URL(environment.apiBaseUrl).origin;
+    }
+    if (globalThis.window === undefined) {
+      return '';
+    }
+    return globalThis.location.origin;
   }
 
   private persistClaimsFromToken(token: string) {
@@ -275,5 +279,16 @@ export class AuthService {
     localStorage.removeItem('userId');
     this.userSignal.set(null);
     this.router.navigate(['/auth']);
+  }
+
+  // Refreshes the access token using the HttpOnly refresh cookie
+  refresh(): Observable<string> {
+    return this.http.post<ApiResponse<string>>(`${this.API_URL}/refresh`, {}, { withCredentials: true }).pipe(
+      map(response => response.data),
+      tap(newToken => {
+        localStorage.setItem('token', newToken);
+        this.persistClaimsFromToken(newToken);
+      })
+    );
   }
 }

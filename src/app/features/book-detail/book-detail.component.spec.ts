@@ -150,14 +150,14 @@ describe('BookDetailComponent', () => {
 
   it('should submit review', () => {
     component.reviewRating.set(5);
-    component.reviewComment.set('Good book');
+    component.reviewComment.set('This is a great book!');
     component.submitReview();
     expect(reviewServiceSpy.addReview).toHaveBeenCalled();
   });
 
   it('should handle submit review error', () => {
     component.reviewRating.set(5);
-    component.reviewComment.set('Good book');
+    component.reviewComment.set('This is a great book!');
     reviewServiceSpy.addReview = vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Only verified purchasers' } })));
     
     component.submitReview();

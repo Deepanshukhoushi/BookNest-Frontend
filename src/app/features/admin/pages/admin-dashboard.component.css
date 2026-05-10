@@ -216,7 +216,7 @@
 }
 
 .metric-card.primary::after { background-color: var(--color-primary); }
-.metric-card.secondary::after { background-color: var(--color-secondary); }
+.metric-card.secondary::after { background-color: var(--color-primary-hover); }
 .metric-card.tertiary::after { background-color: var(--color-tertiary); }
 
 .metric-header {

@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  apiBaseUrl: '/api/v1',
+  apiBaseUrl: 'http://localhost:8080/api/v1',
   razorpayKey: 'rzp_test_SiTFIH8t9b4Q04',
   taxRate: 0.08,
   shippingThreshold: 250,

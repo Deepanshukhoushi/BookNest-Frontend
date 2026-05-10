@@ -13,6 +13,7 @@ export enum AuthProvider {
 
 // Represents the various stages of an order fulfillment process
 export enum OrderStatus {
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
   PLACED = 'PLACED',
   CONFIRMED = 'CONFIRMED',
   PAID = 'PAID',
@@ -127,6 +128,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   bookImageUrl?: string;
+  stockAvailable?: number;
 }
 
 // Data structure for a user's shopping cart
@@ -188,6 +190,7 @@ export interface Review {
   createdAt?: string;
   verified?: boolean;
   status?: ReviewStatus;
+  reviewerName?: string;
 }
 
 export interface OrderItem {

@@ -1,10 +1,10 @@
-﻿<div class="app-shell">
+<div class="app-shell">
   @if (showShell()) {
     <app-header></app-header>
   }
 
   <main class="content-area" [class.has-shell]="showShell()">
-    <router-outlet></router-outlet>
+    <router-outlet #outlet="outlet"></router-outlet>
   </main>
 
   @if (showShell()) {

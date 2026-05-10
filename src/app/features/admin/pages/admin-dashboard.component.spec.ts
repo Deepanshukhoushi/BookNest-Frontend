@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { AdminDashboardComponent } from './admin-dashboard.component';
 import { BookService } from '../../../core/services/book.service';
 import { OrderService } from '../../../core/services/order.service';
 import { ReviewService } from '../../../core/services/review.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CouponService } from '../../../core/services/coupon.service';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { ReactiveFormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
@@ -57,16 +58,21 @@ describe('AdminDashboardComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [AdminDashboardComponent, ReactiveFormsModule],
+      imports: [AdminDashboardComponent],
       providers: [
         { provide: BookService, useValue: bookServiceSpy },
         { provide: OrderService, useValue: orderServiceSpy },
         { provide: ReviewService, useValue: reviewServiceSpy },
         { provide: AuthService, useValue: authServiceSpy },
         { provide: CouponService, useValue: couponServiceSpy },
+        provideRouter([]),
         { provide: Router, useValue: routerSpy },
-        { provide: ActivatedRoute, useValue: { params: of({}) } }
       ]
+    }).overrideComponent(AdminDashboardComponent, {
+      set: {
+        imports: [],
+        schemas: [NO_ERRORS_SCHEMA]
+      }
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminDashboardComponent);
@@ -187,6 +193,68 @@ describe('AdminDashboardComponent', () => {
     } as any);
 
     expect(mockClipboard.writeText).toHaveBeenCalled();
+  });
+
+  it('should fall back to prompt when clipboard api is unavailable', () => {
+    const originalClipboard = navigator.clipboard;
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('copied');
+
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: undefined
+    });
+    Object.defineProperty(globalThis, 'isSecureContext', {
+      configurable: true,
+      value: false
+    });
+
+    component.copyDispatchInfo({
+      orderId: 2,
+      orderStatus: 'PLACED',
+      bookName: 'B2',
+      quantity: 1,
+      amountPaid: 200,
+      address: { fullName: 'Jane' }
+    } as any);
+
+    expect(promptSpy).toHaveBeenCalled();
+    expect(component.actionMessage()).toContain('copied');
+
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: originalClipboard
+    });
+  });
+
+  it('should surface an error when manual copy is cancelled', () => {
+    const originalClipboard = navigator.clipboard;
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(null);
+
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: undefined
+    });
+    Object.defineProperty(globalThis, 'isSecureContext', {
+      configurable: true,
+      value: false
+    });
+
+    component.copyDispatchInfo({
+      orderId: 3,
+      orderStatus: 'PLACED',
+      bookName: 'B3',
+      quantity: 1,
+      amountPaid: 300,
+      address: { fullName: 'Jake' }
+    } as any);
+
+    expect(promptSpy).toHaveBeenCalled();
+    expect(component.actionError()).toContain('Clipboard access failed');
+
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: originalClipboard
+    });
   });
 
   it('should load more books', () => {
@@ -336,5 +404,140 @@ describe('AdminDashboardComponent', () => {
     component.onConfirmAction();
     expect(authServiceSpy.logout).toHaveBeenCalled();
     expect(routerSpy.navigate).toHaveBeenCalledWith(['/auth']);
+  });
+
+  it('should update order status', () => {
+    const orderId = 123;
+    const newStatus = 'SHIPPED';
+    orderServiceSpy.updateOrderStatus.mockReturnValueOnce(of({ orderId, orderStatus: newStatus }));
+    component.allOrders.set([{ orderId, orderStatus: 'PAID' } as any]);
+
+    component.updateStatus(orderId, newStatus);
+
+    expect(orderServiceSpy.updateOrderStatus).toHaveBeenCalledWith(orderId, newStatus);
+    expect(component.allOrders()[0].orderStatus).toBe(newStatus);
+    expect(component.actionMessage()).toContain('updated to SHIPPED');
+  });
+
+  it('should handle order status update error', () => {
+    orderServiceSpy.updateOrderStatus.mockReturnValueOnce(throwError(() => ({ error: { message: 'Update failed' } })));
+    component.updateStatus(1, 'SHIPPED');
+    expect(component.actionError()).toBe('Update failed');
+  });
+
+  it('should toggle book trending status', () => {
+    const book = { bookId: 1, title: 'B1', isFeatured: false } as any;
+    component.inventory.set([book]);
+    bookServiceSpy.updateBook.mockReturnValueOnce(of({ ...book, isFeatured: true }));
+
+    component.toggleTrending(book);
+
+    expect(bookServiceSpy.updateBook).toHaveBeenCalledWith(1, expect.objectContaining({ isFeatured: true }));
+    expect(component.actionMessage()).toContain('is now Trending');
+  });
+
+  it('should calculate metrics correctly', () => {
+    component.allOrders.set([
+      { quantity: 2, amountPaid: 1000 },
+      { quantity: 3, amountPaid: 1500 }
+    ] as any);
+    component.allUsers.set([{ userId: 1, suspended: false }, { userId: 2, suspended: true }] as any);
+    component.allReviews.set([{ reviewId: 1 }, { reviewId: 2 }] as any);
+
+    const metrics = component.metrics();
+    expect(metrics.find(m => m.label === 'Total Volumes Sold')?.value).toBe('5');
+    expect(metrics.find(m => m.label === 'Active Users')?.value).toBe('1');
+    expect(metrics.find(m => m.label === 'Total Revenue')?.value).toBe('INR 2,500');
+    expect(metrics.find(m => m.label === 'Published Reviews')?.value).toBe('2');
+  });
+
+  it('should calculate top selling books', () => {
+    component.allOrders.set([
+      { bookId: 1, bookName: 'Book A', quantity: 10, amountPaid: 100 },
+      { bookId: 2, bookName: 'Book B', quantity: 20, amountPaid: 200 },
+      { bookId: 1, bookName: 'Book A', quantity: 5, amountPaid: 50 }
+    ] as any);
+
+    const topSelling = component.topSellingBooks();
+    expect(topSelling[0].bookId).toBe(2); // Book B has 20
+    expect(topSelling[1].bookId).toBe(1); // Book A has 15
+  });
+
+  it('should handle dashboard refresh partial failure gracefully', () => {
+    // If one service fails, catchError in component handles it and forkJoin still succeeds
+    orderServiceSpy.getAllOrders.mockReturnValueOnce(throwError(() => new Error('API Error')));
+    component.refreshDashboardData();
+    expect(component.allOrders()).toEqual([]);
+    expect(component.loading()).toBe(false);
+  });
+
+  it('should get available next statuses', () => {
+    expect(component.getAvailableNextStatuses('PLACED' as any)).toContain('CONFIRMED');
+    expect(component.getAvailableNextStatuses('SHIPPED' as any)).toContain('OUT_FOR_DELIVERY');
+    expect(component.getAvailableNextStatuses('DELIVERED' as any)).toEqual(['DELIVERED']);
+  });
+
+  it('should handle image error and set fallback', () => {
+    const event = { target: { src: '' } } as any;
+    component.onImageError(event);
+    expect(event.target.src).toContain('book-fallback.svg');
+  });
+
+  it('should set active view and scroll to top', () => {
+    const scrollSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+    component.setView('inventory');
+    expect(component.activeView()).toBe('inventory');
+    expect(scrollSpy).toHaveBeenCalled();
+  });
+
+  it('should handle genre filtering and reset limit', () => {
+    component.booksToShow.set(30);
+    component.setGenreFilter('Fiction');
+    expect(component.selectedGenre()).toBe('Fiction');
+    expect(component.booksToShow()).toBe(15);
+  });
+
+  it('should return correct filter labels', () => {
+    expect(component.getFilterLabel('ALL')).toBe('All');
+    expect(component.getFilterLabel('OUT_FOR_DELIVERY')).toBe('OUT FOR DELIVERY');
+  });
+
+  it('should provide trackBy identifiers', () => {
+    expect(component.trackByBookId(0, { bookId: 10 } as any)).toBe(10);
+    expect(component.trackByOrderId(0, { orderId: 20 } as any)).toBe(20);
+    expect(component.trackByUserId(0, { userId: 30 } as any)).toBe(30);
+    expect(component.trackByReviewId(0, { reviewId: 40 } as any)).toBe(40);
+    expect(component.trackByCouponId(0, { couponId: 50 } as any)).toBe(50);
+    expect(component.trackByValue(0, 'test')).toBe('test');
+  });
+
+  it('should clear searches and reset limit', () => {
+    component.searchTerm.set('test');
+    component.booksToShow.set(30);
+    component.clearSearch();
+    expect(component.searchTerm()).toBe('');
+    expect(component.booksToShow()).toBe(15);
+
+    component.orderSearchTerm.set('test');
+    component.clearOrderSearch();
+    expect(component.orderSearchTerm()).toBe('');
+  });
+
+  it('should handle search changes from event', () => {
+    const event = { target: { value: 'query' } } as any;
+    component.onSearchChange(event);
+    expect(component.searchTerm()).toBe('query');
+    
+    const orderEvent = { target: { value: 'order-query' } } as any;
+    component.onOrderSearchChange(orderEvent);
+    expect(component.orderSearchTerm()).toBe('order-query');
+  });
+
+  it('should handle refreshStatusCounts success', () => {
+    const counts = { PENDING: 5, APPROVED: 10, REJECTED: 2 };
+    reviewServiceSpy.getStatusCounts.mockReturnValueOnce(of(counts));
+    // Access private method via any casting for coverage
+    (component as any).refreshStatusCounts();
+    expect(component.reviewStatusCounts()).toEqual(counts);
   });
 });

@@ -7,7 +7,7 @@ import { WishlistService } from '../../core/services/wishlist.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { LogoComponent } from '../../shared/ui/logo/logo.component';
-import { Cart, CartItem } from '../../shared/models/models';
+import { Cart, CartItem, WishlistItem } from '../../shared/models/models';
 
 @Component({
   selector: 'app-cart',
@@ -28,7 +28,7 @@ export class CartComponent implements OnInit {
   
   // Derived signals for the template
   cartItems = computed(() => this.cart()?.items || []);
-  wishlistItems = signal<any[]>([]);
+  wishlistItems = signal<WishlistItem[]>([]);
   
   shipping = computed(() => {
     const sub = this.subtotal();
@@ -44,14 +44,23 @@ export class CartComponent implements OnInit {
     const user = this.authService.currentUser();
     if (user) {
       this.wishlistService.fetchWishlist(user.userId).subscribe({
-        next: (wishlist: any) => this.wishlistItems.set(wishlist?.items || []),
+        next: (wishlist) => this.wishlistItems.set(wishlist?.items || []),
         error: () => {} // non-critical; wishlist section hidden when empty
       });
     }
   }
 
   updateQuantity(itemId: number, quantity: number) {
-    if (quantity < 1) return;
+    const item = this.cartItems().find(i => i.itemId === itemId);
+    const max = item?.stockAvailable ?? 99;
+    
+    if (quantity < 1 || quantity > max) {
+      if (quantity > max) {
+        this.notificationService.error(`Only ${max} copies available in stock.`);
+      }
+      return;
+    }
+    
     this.cartService.updateQuantity(itemId, quantity).subscribe({
       error: () => {} // error handled globally by apiInterceptor
     });
@@ -63,7 +72,7 @@ export class CartComponent implements OnInit {
     });
   }
 
-  moveToCart(item: any) {
+  moveToCart(item: WishlistItem) {
     const user = this.authService.currentUser();
     if (!user) {
       this.router.navigate(['/auth'], { queryParams: { returnUrl: '/cart' } });
@@ -75,12 +84,20 @@ export class CartComponent implements OnInit {
       switchMap(() => this.wishlistService.removeFromWishlist(user.userId, item.bookId)),
       switchMap(() => this.wishlistService.fetchWishlist(user.userId))
     ).subscribe({
-      next: (wishlist: any) => this.wishlistItems.set(wishlist?.items || []),
+      next: (wishlist) => this.wishlistItems.set(wishlist?.items || []),
       error: () => {} // global interceptor shows toast
     });
   }
 
   checkout() {
     this.router.navigate(['/checkout']);
+  }
+
+  trackByItemId(_: number, item: CartItem): number {
+    return item.itemId;
+  }
+
+  trackByWishlistId(_: number, item: WishlistItem): number {
+    return item.itemId;
   }
 }

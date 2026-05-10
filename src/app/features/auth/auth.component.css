@@ -40,7 +40,7 @@
 .panel-bg {
   position: absolute;
   inset: 0;
-  background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&q=80&w=800');
+  background-image: url('/assets/images/booknest-home-image.png');
   background-size: cover;
   background-position: center;
   transition: transform 12s ease;
@@ -53,11 +53,9 @@
 .panel-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    175deg,
-    rgba(127, 22, 53, 0.45) 0%,
-    rgba(127, 22, 53, 0.8) 100%
-  );
+  background: linear-gradient(175deg,
+      rgba(127, 22, 53, 0.45) 0%,
+      rgba(127, 22, 53, 0.8) 100%);
 }
 
 .panel-top {
@@ -142,8 +140,15 @@
 }
 
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(14px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================
@@ -253,7 +258,9 @@
   transition: opacity 0.2s;
 }
 
-.forgot-link:hover { opacity: 0.75; }
+.forgot-link:hover {
+  opacity: 0.75;
+}
 
 .field-input {
   background: #fafafa;
@@ -316,7 +323,7 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -445,18 +452,22 @@
     padding: 0;
     align-items: stretch;
   }
+
   .auth-card-container {
     flex-direction: column;
     border-radius: 0;
     min-height: calc(100vh - 64px);
     box-shadow: none;
   }
+
   .image-panel {
     flex: 0 0 200px;
   }
+
   .panel-tagline {
     font-size: 1.25rem;
   }
+
   .form-panel {
     padding: var(--space-2xl) var(--space-xl);
     align-items: flex-start;
@@ -467,6 +478,7 @@
   .form-row {
     grid-template-columns: 1fr;
   }
+
   .social-grid {
     grid-template-columns: 1fr;
   }
@@ -498,7 +510,7 @@
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--color-primary-light);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(127, 22, 53, 0.35);
 }
@@ -608,6 +620,7 @@
     flex-direction: column;
     min-height: auto;
   }
+
   .image-panel {
     flex: none;
     min-height: 180px;
@@ -640,8 +653,11 @@
 .password-toggle {
   position: absolute;
   right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  transform: translateY(6px); /* Nudge down slightly to account for floating label padding */
+  /* Precisely centered relative to the input text and floating label */
   width: 32px;
   height: 32px;
   background: none;
@@ -678,7 +694,7 @@
 input::-ms-reveal,
 input::-ms-clear {
   display: none;
-} 
+}
 
 
 /* Refined Password and Forgot Link Layout */
@@ -705,14 +721,14 @@ input::-ms-clear {
 .forgot-link:hover {
   opacity: 1;
   text-decoration: underline;
-} 
+}
 
 
 /* Spacing Adjustment */
 .forgot-password-row {
   margin-top: 4px;
   margin-bottom: 8px !important;
-} 
+}
 
 /* Validation Visuals */
 .input-invalid {
